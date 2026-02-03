@@ -113,6 +113,10 @@ function handleMessage(data) {
         case 'game_over':
             handleGameOver(data);
             break;
+        case 'game_paused':
+            elements.roundDisplay.textContent = 'Game paused by host';
+            showScreen('waiting-screen');
+            break;
         case 'game_reset':
             window.location.href = '/';
             break;
@@ -296,6 +300,9 @@ function handleVoteUpdate(data) {
 
     if (data.locked && data.choice) {
         highlightVote(data.choice);
+        document.querySelectorAll('.bar-button').forEach(btn => {
+            btn.disabled = true;
+        });
     }
 }
 

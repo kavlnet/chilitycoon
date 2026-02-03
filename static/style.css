@@ -66,6 +66,7 @@ body {
     text-transform: uppercase;
     transition: transform 0.1s;
     position: relative;
+    display: inline-block;
 
     /* 3D effect */
     border-bottom-width: 6px;

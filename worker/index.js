@@ -485,6 +485,9 @@ export class GameRoom {
     const bars = {};
     for (const attr of this.game.market.attributes) {
       bars[attr] = this.game.config.startingBar;
+      if (this.game.paradigmShifted && attr === this.game.paradigmAttribute) {
+        bars[attr] = 0;
+      }
     }
 
     return {
@@ -601,6 +604,7 @@ export class GameRoom {
   }
 
   async resetGame() {
+    this.clearBotTimeouts();
     this.game.phase = "waiting";
     this.game.round = 0;
     this.game.roundStart = null;
@@ -651,6 +655,7 @@ export class GameRoom {
   }
 
   async pauseGame() {
+    this.clearBotTimeouts();
     this.game.phase = "paused";
     this.game.roundStart = null;
     this.game.roundEndAt = null;
@@ -711,6 +716,8 @@ export class GameRoom {
     if (this.game.botsEnabled) {
       this.scheduleBotVotes();
     }
+
+    await this.persistState();
   }
 
   getSpeedBonus(decisionTime) {
@@ -796,6 +803,7 @@ export class GameRoom {
   async endRound() {
     if (this.game.phase !== "round") return;
 
+    this.clearBotTimeouts();
     this.game.phase = "results";
     const results = {};
     const feedback = {};
@@ -1001,7 +1009,6 @@ export class GameRoom {
     }
 
     await this.startRound();
-    await this.persistState();
   }
 
   applyDrift() {

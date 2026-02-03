@@ -35,6 +35,7 @@ async function hostAction(action, extra = {}) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ action, hostKey, ...extra }),
     });
+    refreshState();
 }
 
 async function refreshState() {

@@ -125,11 +125,14 @@
                     teamsContainer.innerHTML = '<p class="empty-state">No teams yet. Create one!</p>';
                 } else {
                     teamsContainer.innerHTML = data.teams.map(team => `
-                        <div class="team-card" onclick="selectTeam('${team.name.replace(/'/g, "&#39;")}')">
+                        <div class="team-card" data-team="${team.name}">
                             <span class="team-name">${team.name}</span>
                             <span class="team-info">${team.players} players | $${team.cash}</span>
                         </div>
                     `).join('');
+                    teamsContainer.querySelectorAll('.team-card').forEach(card => {
+                        card.addEventListener('click', () => selectTeam(card.dataset.team));
+                    });
                 }
             } catch (err) {
                 teamsContainer.innerHTML = '<p class="empty-state">Room not found yet.</p>';

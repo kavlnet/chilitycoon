@@ -53,7 +53,7 @@ The "hot" attribute is whichever has the highest weight. Weights drift in short 
 - Lose: $0
 
 ### Round Flow
-1. **Team Voting** - Players vote on an attribute; majority locks in the decision
+1. **Team Voting** - Players vote on an attribute; majority locks in the decision (no-vote fallback invests at 0.7x)
 2. **Depreciation** - All bars lose 5% (simulates market erosion)
 3. **Score Calculated** - Determines win/loss for this round
 4. **Build Applied** - Team's chosen attribute gains points (speed bonus)
@@ -105,6 +105,8 @@ Feedback appears AFTER each round as a lagging indicator. Signals emphasize the 
 - Team voting with majority lock-in
 - Paradigm shift at round 15 (warning one round prior)
 - Leaderboard visible throughout
+ - Host dashboard controls start/pause/reset and bots
+ - Spectator view shows live leaderboard and events
 
 ### Single Player (Practice)
 - Player competes against 3 bot teams
@@ -187,7 +189,8 @@ SPEED_BONUS_SLOW = 1.0     # 20-30 seconds
 BASE_PAYOUT = 30           # Minimum win payout
 MARGIN_MULTIPLIER = 1.2    # Bonus per point above standard
 
-WEIGHT_DRIFT = ±0.03       # Max weight change per round
+WEIGHT_DRIFT_NOISE = ±0.01 # Small per-round noise
+TREND_REGIME = 3-5 rounds  # Weights drift toward a target for a few rounds
 NEW_ATTRIBUTE_WEIGHT = 0.25 # Weight given to paradigm shift attribute
 ```
 

@@ -71,4 +71,16 @@ function logEvent(text) {
     }
 }
 
+async function fetchState() {
+    try {
+        const response = await fetch(`/api/room/${encodeURIComponent(roomId)}/state`);
+        const state = await response.json();
+        roundEl.textContent = `Round: ${state.round} / ${state.totalRounds}`;
+        if (state.leaderboard) updateLeaderboard(state.leaderboard);
+    } catch (err) {
+        // ignore
+    }
+}
+
 connect();
+fetchState();
