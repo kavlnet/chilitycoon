@@ -13,5 +13,5 @@ tag = "v1"
 new_sqlite_classes = ["GameRoom"]
 
 [[routes]]
-pattern = "yourdomain.com/*"
+pattern = "chilitycoon.com/*"
 custom_domain = true
