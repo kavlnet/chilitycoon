@@ -2,7 +2,7 @@
 
 A multiplayer strategy game about reading market signals and acting fast. The backend is a Cloudflare Worker with a Durable Object that runs the game loop and WebSocket realtime sync. The front end is vanilla JavaScript with a Balatro-inspired UI.
 
-Test
+Test another thing
 
 ## Structure
 

@@ -1,6 +1,7 @@
 const BASE_ATTRIBUTES = ["spiciness", "flavor", "portion", "ambiance"];
 const PARADIGM_ATTRIBUTES = ["authenticity", "presentation", "speed_of_service", "value"];
 
+// Testing
 const DEFAULT_CONFIG = {
   roundDuration: 30,
   resultsDuration: 8,
