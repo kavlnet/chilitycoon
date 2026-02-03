@@ -5,7 +5,7 @@ A multiplayer strategy game about reading market signals and acting fast. The ba
 ## Structure
 
 ```
-chiligame/
+chilitycoon/
 ├── worker/
 │   └── index.js          # Cloudflare Worker + Durable Object game server
 ├── wrangler.toml         # Cloudflare config
