@@ -16,6 +16,9 @@ const elements = {
     shiftRound: document.getElementById('shift-round'),
     stateDisplay: document.getElementById('state-display'),
     leaderboard: document.getElementById('leaderboard'),
+    newTeamName: document.getElementById('new-team-name'),
+    createTeamBtn: document.getElementById('create-team-btn'),
+    teamsList: document.getElementById('teams-list'),
 };
 
 if (!roomId || !hostKey) {
@@ -77,5 +80,40 @@ if (elements.applyConfig) {
     });
 }
 
+if (elements.createTeamBtn) {
+    elements.createTeamBtn.addEventListener('click', async () => {
+        const teamName = elements.newTeamName.value.trim();
+        if (!teamName) {
+            alert('Please enter a team name');
+            return;
+        }
+        await hostAction('create_team', { teamName });
+        elements.newTeamName.value = '';
+        await refreshTeams();
+    });
+}
+
+async function refreshTeams() {
+    if (!roomId) return;
+    try {
+        const response = await fetch(`/api/room/${encodeURIComponent(roomId)}/teams`);
+        const data = await response.json();
+        if (elements.teamsList) {
+            elements.teamsList.innerHTML = (data.teams || []).map(team => `
+                <div class="team-entry">
+                    <span class="team-name">${team.name}</span>
+                    <span class="team-players">${team.players} player${team.players !== 1 ? 's' : ''}</span>
+                </div>
+            `).join('') || '<div class="hint">No teams yet</div>';
+        }
+    } catch (err) {
+        if (elements.teamsList) {
+            elements.teamsList.innerHTML = '<div class="hint">Unable to load teams</div>';
+        }
+    }
+}
+
 refreshState();
+refreshTeams();
 setInterval(refreshState, 3000);
+setInterval(refreshTeams, 3000);

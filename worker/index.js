@@ -505,6 +505,25 @@ export class GameRoom {
     };
   }
 
+  createTeamIfNotExists(teamName) {
+    const name = teamName.trim();
+    if (!name) {
+      return { ok: false, error: "Team name cannot be empty" };
+    }
+    if (name.length > 20) {
+      return { ok: false, error: "Team name too long (max 20 characters)" };
+    }
+    if (this.game.teams[name]) {
+      return { ok: false, error: "Team already exists" };
+    }
+    this.game.teams[name] = this.createTeam(name);
+    this.broadcast({
+      type: "teams_updated",
+      leaderboard: this.getLeaderboard(),
+    });
+    return { ok: true };
+  }
+
   getGameState() {
     return {
       phase: this.game.phase,
@@ -586,6 +605,14 @@ export class GameRoom {
         break;
       case "set_config":
         this.updateConfig(payload.config || {});
+        break;
+      case "create_team":
+        if (payload.teamName) {
+          const result = this.createTeamIfNotExists(payload.teamName);
+          if (!result.ok) {
+            return jsonResponse({ ok: false, error: result.error }, { status: 400 });
+          }
+        }
         break;
       default:
         break;
