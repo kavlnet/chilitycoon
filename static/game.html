@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chili Tycoon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <div class="header-left">
+                <span class="team-badge" id="team-badge">Team</span>
+                <span class="room-badge" id="room-badge">ROOM</span>
+            </div>
+            <div class="header-center">
+                <span id="round-display">Waiting to start...</span>
+            </div>
+            <div class="header-right">
+                <span class="cash" id="cash-display">$0</span>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <section id="waiting-screen" class="screen active">
+                <h2>Waiting for Game to Start</h2>
+                <p>Team: <strong id="waiting-team"></strong></p>
+
+                <div class="quick-rules">
+                    <div class="rule-item">
+                        <span class="rule-number">1</span>
+                        <span class="rule-text">Vote together to lock in your attribute</span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-number">2</span>
+                        <span class="rule-text">After results, read feedback to learn the market</span>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-number">3</span>
+                        <span class="rule-text">Fast correct decisions build more</span>
+                    </div>
+                </div>
+
+                <div id="waiting-teams">
+                    <h3>Teams Ready</h3>
+                    <div id="waiting-leaderboard"></div>
+                </div>
+
+                <div class="waiting-note">The host will start the game.</div>
+            </section>
+
+            <section id="round-screen" class="screen">
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timer-fill"></div>
+                </div>
+
+                <div class="round-content">
+                    <div class="panel-header">
+                        <span class="timer-text" id="timer-text">30s</span>
+                        <span class="speed-bonus" id="speed-bonus">1.5x bonus</span>
+                    </div>
+
+                    <div id="hint-box" class="hint-box hidden"></div>
+
+                    <h2>Vote on an Attribute</h2>
+                    <p class="hint">What does the market want right now?</p>
+
+                    <div class="bars-display" id="bars-display"></div>
+
+                    <div id="vote-panel" class="vote-panel hidden">
+                        <h4>Team Votes</h4>
+                        <div id="vote-list" class="vote-list"></div>
+                    </div>
+
+                    <div id="submitted-indicator" class="submitted-indicator hidden">
+                        Vote submitted! Waiting for others...
+                    </div>
+                </div>
+            </section>
+
+            <section id="results-screen" class="screen">
+                <div class="results-layout">
+                    <div class="outcome-panel">
+                        <div id="deal-outcome" class="deal-outcome won">DEAL WON!</div>
+
+                        <div class="your-result" id="your-result">
+                            <div class="result-decision">You invested in: <span id="your-decision"></span></div>
+                            <div class="result-payout">
+                                <span id="your-payout"></span>
+                            </div>
+                            <div class="result-bonus" id="your-bonus"></div>
+                        </div>
+
+                        <div class="judgment-panel" id="judgment-panel">
+                            <div class="judgment-item">
+                                <span class="label">Judgment</span>
+                                <span class="value" id="judgment-value">-</span>
+                            </div>
+                            <div class="judgment-item">
+                                <span class="label">Speed</span>
+                                <span class="value" id="speed-value">-</span>
+                            </div>
+                            <p class="hint">Speed amplifies judgment — fast + correct builds the most.</p>
+                        </div>
+
+                        <div class="result-bars" id="result-bars"></div>
+                    </div>
+
+                    <div class="feedback-panel">
+                        <h3>Customer Feedback</h3>
+                        <p class="hint">3 customers visited. Here's what they said:</p>
+                        <div class="feedback-container" id="feedback-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="gameover-screen" class="screen">
+                <h1>Game Over!</h1>
+                <div class="final-leaderboard" id="final-leaderboard"></div>
+                <button id="reset-btn" class="btn btn-primary">Back to Lobby</button>
+            </section>
+        </main>
+
+        <aside class="leaderboard">
+            <h3>Leaderboard</h3>
+            <div id="leaderboard-list"></div>
+        </aside>
+
+        <div id="paradigm-warning" class="paradigm-overlay hidden">
+            <div class="paradigm-content">
+                <h1>MARKET RUMOR</h1>
+                <p id="paradigm-warning-message">Something big is about to change...</p>
+            </div>
+        </div>
+
+        <div id="paradigm-overlay" class="paradigm-overlay hidden">
+            <div class="paradigm-content">
+                <h1>PARADIGM SHIFT</h1>
+                <p id="paradigm-message">The market has completely changed!</p>
+            </div>
+        </div>
+
+        <div id="countdown-overlay" class="countdown-overlay hidden">
+            <div class="countdown-number" id="countdown-number">3</div>
+        </div>
+    </div>
+
+    <script src="/static/sounds.js"></script>
+    <script src="/static/game.js"></script>
+</body>
+</html>

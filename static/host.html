@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chili Tycoon Host</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌶️ HOST DASHBOARD</h1>
+            <p class="tagline">Room control center</p>
+        </header>
+
+        <div class="host-grid">
+            <div class="panel host-panel">
+                <h2>Room</h2>
+                <div class="host-room-info">
+                    <div>Room Code: <span id="room-code">-</span></div>
+                    <div>Host Key: <span id="host-key">-</span></div>
+                </div>
+                <div class="host-actions">
+                    <button id="start-btn" class="btn btn-primary">Start</button>
+                    <button id="pause-btn" class="btn btn-secondary">Pause</button>
+                    <button id="end-round-btn" class="btn btn-secondary">End Round</button>
+                    <button id="reset-btn" class="btn btn-danger">Reset</button>
+                </div>
+            </div>
+
+            <div class="panel host-panel">
+                <h2>Config</h2>
+                <div class="form-group">
+                    <label for="round-duration">Round Duration (sec)</label>
+                    <input id="round-duration" type="number" min="10" max="60" value="30" />
+                </div>
+                <div class="form-group">
+                    <label for="total-rounds">Total Rounds</label>
+                    <input id="total-rounds" type="number" min="5" max="50" value="30" />
+                </div>
+                <div class="form-group">
+                    <label for="shift-round">Paradigm Shift Round</label>
+                    <input id="shift-round" type="number" min="3" max="40" value="15" />
+                </div>
+                <button id="apply-config" class="btn btn-primary">Apply Config</button>
+            </div>
+
+            <div class="panel host-panel">
+                <h2>Bots</h2>
+                <p class="hint">Add bot teams for quick playtests.</p>
+                <button id="add-bots" class="btn btn-secondary">Add Bots</button>
+            </div>
+
+            <div class="panel host-panel">
+                <h2>Live State</h2>
+                <div id="state-display">-</div>
+                <h3>Leaderboard</h3>
+                <div id="leaderboard"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/host.js"></script>
+</body>
+</html>

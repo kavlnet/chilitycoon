@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chili Tycoon Spectator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌶️ SPECTATOR VIEW</h1>
+            <p class="tagline">Live leaderboard and events</p>
+        </header>
+
+        <div class="panel spectator-panel">
+            <div class="spectator-info">
+                <span id="spectator-room">Room: -</span>
+                <span id="spectator-round">Round: -</span>
+            </div>
+            <div class="spectator-leaderboard" id="spectator-leaderboard"></div>
+        </div>
+
+        <div class="panel spectator-panel">
+            <h3>Event Feed</h3>
+            <div id="event-feed" class="event-feed"></div>
+        </div>
+    </div>
+
+    <script src="/static/spectate.js"></script>
+</body>
+</html>

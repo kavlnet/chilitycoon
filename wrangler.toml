@@ -1,0 +1,13 @@
+name = "chili-tycoon"
+main = "worker/index.js"
+compatibility_date = "2025-12-01"
+
+[assets]
+directory = "./static"
+
+[durable_objects]
+bindings = [{ name = "GAME_ROOM", class_name = "GameRoom" }]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["GameRoom"]

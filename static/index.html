@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chili Tycoon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="intro-screen" class="intro-screen">
+        <img src="/static/intro_image.png" alt="Chili Tycoon" class="intro-image">
+        <button id="start-intro-btn" class="btn btn-primary btn-pulse">PRESS START</button>
+    </div>
+
+    <div class="container" id="main-container" style="display: none;">
+        <header>
+            <h1>🌶️ CHILI TYCOON 🌶️</h1>
+            <p class="tagline">Read the market. Build your empire.</p>
+        </header>
+
+        <main class="join-screen">
+            <div class="join-form">
+                <h2>Create a Room</h2>
+                <p class="hint">Host controls start/pause/reset and can add bots.</p>
+                <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+                <div id="room-created" class="room-created hidden">
+                    <div class="room-code">Room Code: <span id="room-code"></span></div>
+                    <div class="room-actions">
+                        <a id="host-link" class="btn btn-secondary" href="#">Open Host Dashboard</a>
+                        <button id="copy-room-btn" class="btn btn-primary">Copy Room Link</button>
+                    </div>
+                    <p class="hint">Share the room code or link with players.</p>
+                </div>
+            </div>
+
+            <div class="join-form">
+                <h2>Join a Room</h2>
+                <div class="form-group">
+                    <label for="room-id">Room Code</label>
+                    <input type="text" id="room-id" placeholder="Enter room code" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label for="team-name">Team Name</label>
+                    <input type="text" id="team-name" placeholder="Enter team name" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="player-name">Your Name</label>
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button id="join-btn" class="btn btn-primary">Join Game</button>
+                <button id="spectate-btn" class="btn btn-secondary">Spectate</button>
+            </div>
+
+            <div class="teams-list">
+                <h3>Current Teams</h3>
+                <div id="teams-container">
+                    <p class="empty-state">No teams yet. Create a room!</p>
+                </div>
+            </div>
+
+            <div class="rules">
+                <h3>How to Play</h3>
+                <ul>
+                    <li><strong>Vote as a team</strong> - Majority locks in your attribute choice</li>
+                    <li><strong>Beat the market standard</strong> - Weighted score must exceed the benchmark</li>
+                    <li><strong>Learn from feedback</strong> - Customer reviews hide what matters most</li>
+                    <li><strong>Speed = leverage</strong> - Fast correct decisions build more</li>
+                </ul>
+
+                <h4>Key Mechanics</h4>
+                <ul>
+                    <li>Weights drift in regimes - read the pattern, then move fast</li>
+                    <li>Bars depreciate each round - keep investing</li>
+                    <li>Paradigm shift adds a new attribute mid-game</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const roomInput = document.getElementById('room-id');
+        const teamInput = document.getElementById('team-name');
+        const nameInput = document.getElementById('player-name');
+        const joinBtn = document.getElementById('join-btn');
+        const spectateBtn = document.getElementById('spectate-btn');
+        const teamsContainer = document.getElementById('teams-container');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const roomCreated = document.getElementById('room-created');
+        const roomCodeEl = document.getElementById('room-code');
+        const hostLink = document.getElementById('host-link');
+        const copyRoomBtn = document.getElementById('copy-room-btn');
+
+        function setStored(key, value) {
+            localStorage.setItem(key, value);
+        }
+
+        function getStored(key) {
+            return localStorage.getItem(key);
+        }
+
+        function getOrCreatePlayerId(roomId, teamName, playerName) {
+            const existing = getStored('chili_playerId');
+            const existingRoom = getStored('chili_roomId');
+            if (existing && existingRoom === roomId) {
+                return existing;
+            }
+            const id = 'p_' + Math.random().toString(36).slice(2, 10);
+            setStored('chili_playerId', id);
+            return id;
+        }
+
+        async function loadTeams(roomId) {
+            if (!roomId) {
+                teamsContainer.innerHTML = '<p class="empty-state">Enter a room code to see teams.</p>';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/room/${encodeURIComponent(roomId)}/teams`);
+                if (!response.ok) throw new Error('Failed');
+                const data = await response.json();
+                if (!data.teams || data.teams.length === 0) {
+                    teamsContainer.innerHTML = '<p class="empty-state">No teams yet. Create one!</p>';
+                } else {
+                    teamsContainer.innerHTML = data.teams.map(team => `
+                        <div class="team-card" onclick="selectTeam('${team.name.replace(/'/g, "&#39;")}')">
+                            <span class="team-name">${team.name}</span>
+                            <span class="team-info">${team.players} players | $${team.cash}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                teamsContainer.innerHTML = '<p class="empty-state">Room not found yet.</p>';
+            }
+        }
+
+        function selectTeam(name) {
+            teamInput.value = name;
+        }
+        window.selectTeam = selectTeam;
+
+        createRoomBtn.addEventListener('click', async () => {
+            createRoomBtn.disabled = true;
+            createRoomBtn.textContent = 'Creating...';
+            try {
+                const response = await fetch('/api/room', { method: 'POST' });
+                const data = await response.json();
+                roomCodeEl.textContent = data.roomId;
+                roomCreated.classList.remove('hidden');
+                hostLink.href = `/host.html?room=${data.roomId}&hostKey=${data.hostKey}`;
+
+                setStored('chili_roomId', data.roomId);
+                setStored('chili_hostKey', data.hostKey);
+                roomInput.value = data.roomId;
+                loadTeams(data.roomId);
+            } catch (err) {
+                alert('Failed to create room.');
+            } finally {
+                createRoomBtn.disabled = false;
+                createRoomBtn.textContent = 'Create Room';
+            }
+        });
+
+        copyRoomBtn.addEventListener('click', () => {
+            const roomId = roomCodeEl.textContent;
+            if (!roomId) return;
+            const link = `${window.location.origin}/?room=${roomId}`;
+            navigator.clipboard.writeText(link).then(() => {
+                copyRoomBtn.textContent = 'Copied!';
+                setTimeout(() => (copyRoomBtn.textContent = 'Copy Room Link'), 1500);
+            });
+        });
+
+        joinBtn.addEventListener('click', () => {
+            const roomId = roomInput.value.trim();
+            const teamName = teamInput.value.trim();
+            const playerName = nameInput.value.trim();
+            if (!roomId || !teamName || !playerName) {
+                alert('Please enter room code, team name, and your name.');
+                return;
+            }
+            const playerId = getOrCreatePlayerId(roomId, teamName, playerName);
+            setStored('chili_roomId', roomId);
+            setStored('chili_teamName', teamName);
+            setStored('chili_playerName', playerName);
+            setStored('chili_playerId', playerId);
+            window.location.href = `/game.html?room=${encodeURIComponent(roomId)}`;
+        });
+
+        spectateBtn.addEventListener('click', () => {
+            const roomId = roomInput.value.trim();
+            if (!roomId) {
+                alert('Enter a room code to spectate.');
+                return;
+            }
+            window.location.href = `/spectate.html?room=${encodeURIComponent(roomId)}`;
+        });
+
+        roomInput.addEventListener('input', () => {
+            loadTeams(roomInput.value.trim());
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const presetRoom = params.get('room');
+        if (presetRoom) {
+            roomInput.value = presetRoom.toUpperCase();
+            loadTeams(roomInput.value.trim());
+        }
+
+        const storedRoom = getStored('chili_roomId');
+        if (storedRoom && !roomInput.value) {
+            roomInput.value = storedRoom;
+            loadTeams(storedRoom);
+        }
+        const storedTeam = getStored('chili_teamName');
+        if (storedTeam) teamInput.value = storedTeam;
+        const storedName = getStored('chili_playerName');
+        if (storedName) nameInput.value = storedName;
+
+        setInterval(() => {
+            const roomId = roomInput.value.trim();
+            if (roomId) loadTeams(roomId);
+        }, 4000);
+
+        document.getElementById('start-intro-btn').addEventListener('click', () => {
+            document.getElementById('intro-screen').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                document.getElementById('main-container').style.display = 'block';
+            }, 500);
+        });
+        document.getElementById('intro-screen').addEventListener('click', () => {
+            document.getElementById('start-intro-btn').click();
+        });
+        document.addEventListener('keydown', () => {
+            if (document.getElementById('intro-screen').style.display !== 'none') {
+                document.getElementById('start-intro-btn').click();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>

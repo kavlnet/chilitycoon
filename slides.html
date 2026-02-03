@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depth vs Breadth - Karl Yang</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            padding: 60px 80px;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: #e8c14a;
+        }
+
+        .subtitle {
+            font-size: 32px;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        ul {
+            font-size: 32px;
+            line-height: 1.8;
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 16px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #e8c14a;
+        }
+
+        .highlight {
+            color: #e8c14a;
+        }
+
+        .red {
+            color: #e94560;
+        }
+
+        .green {
+            color: #4ae864;
+        }
+
+        table {
+            font-size: 24px;
+            border-collapse: collapse;
+            margin: 40px 0;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 20px 30px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            color: #e8c14a;
+            font-size: 28px;
+        }
+
+        .big-text {
+            font-size: 52px;
+            font-weight: 600;
+            line-height: 1.4;
+            max-width: 1000px;
+        }
+
+        .crossed {
+            text-decoration: line-through;
+            color: #e94560;
+        }
+
+        .flags {
+            font-size: 64px;
+            margin: 30px 0;
+        }
+
+        .progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #e8c14a;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 30px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .slide.title-slide {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide.title-slide h1 {
+            font-size: 72px;
+        }
+
+        .slide.takeaway {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .diagram {
+            display: flex;
+            gap: 60px;
+            margin: 40px 0;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diagram-box {
+            padding: 30px 40px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .diagram-box.small-gap {
+            background: rgba(74, 232, 100, 0.2);
+            border: 3px solid #4ae864;
+        }
+
+        .diagram-box.big-gap {
+            background: rgba(233, 69, 96, 0.2);
+            border: 3px solid #e94560;
+        }
+
+        .diagram-label {
+            font-size: 18px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .gap-arrow {
+            font-size: 48px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Slide 1: Title -->
+    <div class="slide title-slide active">
+        <h1>Depth vs Breadth</h1>
+        <p class="subtitle">(and knowing when to quit)</p>
+        <p class="subtitle" style="margin-top: 60px; color: #666;">Karl Yang — Rippling International Payroll</p>
+    </div>
+
+    <!-- Slide 2: The Setup -->
+    <div class="slide">
+        <h2>The Setup</h2>
+        <ul>
+            <li>Deel was already in market with <span class="highlight">150+ countries</span></li>
+            <li>We were late. The obvious move: match their coverage.</li>
+            <li>But we didn't have years to catch up.</li>
+        </ul>
+    </div>
+
+    <!-- Slide 3: The Secret -->
+    <div class="slide">
+        <h2>Our Secret</h2>
+        <ul>
+            <li>"Global payroll" is a misnomer</li>
+            <li><span class="highlight">90%</span> of the market is in a handful of countries</li>
+            <li>Deel built for the checkbox. We'd build for reality.</li>
+            <li>If we're <span class="highlight">10x better</span> where it matters, we win.</li>
+        </ul>
+    </div>
+
+    <!-- Slide 4: What Deep Meant -->
+    <div class="slide">
+        <h2>What "Deep" Meant</h2>
+        <table>
+            <tr>
+                <th>Rippling (deep)</th>
+                <th>Deel (broad)</th>
+            </tr>
+            <tr>
+                <td>Build payroll + EOR in each country</td>
+                <td>EOR only, aggregate payroll partners</td>
+            </tr>
+            <tr>
+                <td>Hourly workers, flexible pay schedules</td>
+                <td>Standardized across countries</td>
+            </tr>
+            <tr>
+                <td>Vertical integration</td>
+                <td>Stitch together partners</td>
+            </tr>
+        </table>
+        <p style="font-size: 28px; margin-top: 20px;">We explicitly decided <span class="highlight">not to play Deel's game</span></p>
+    </div>
+
+    <!-- Slide 5: Where It Worked -->
+    <div class="slide">
+        <h2>Where It Worked</h2>
+        <div class="flags">🇨🇦 🇬🇧 🇦🇺 <span class="green">✓</span></div>
+        <ul>
+            <li>English-speaking countries</li>
+            <li>Requirements were discoverable</li>
+            <li>Gap from "good enough" to "great" was <span class="green">achievable</span></li>
+            <li>We built 10x better. Won deals on quality.</li>
+        </ul>
+    </div>
+
+    <!-- Slide 6: Where It Didn't -->
+    <div class="slide">
+        <h2>Where It Didn't</h2>
+        <div class="flags">🇩🇪 🇫🇷 🇮🇳 <span class="red">✗</span></div>
+        <ul>
+            <li>Requirements were <span class="red">horrifically complex</span></li>
+            <li>Gap from "good enough" to "great" was <span class="red">10x larger</span></li>
+            <li>We didn't have the appetite to truly beat incumbents</li>
+            <li>But we kept trying anyway</li>
+        </ul>
+    </div>
+
+    <!-- Slide 7: The Real Problem -->
+    <div class="slide">
+        <h2>The Real Problem</h2>
+        <div class="diagram">
+            <div class="diagram-box small-gap">
+                <div style="font-size: 32px;">Canada/UK/AU</div>
+                <div style="margin: 20px 0; font-size: 20px;">Deel → Rippling</div>
+                <div style="font-size: 48px; color: #4ae864;">↑ small gap</div>
+                <div class="diagram-label">Achievable 10x</div>
+            </div>
+            <div class="diagram-box big-gap">
+                <div style="font-size: 32px;">Germany/France/India</div>
+                <div style="margin: 20px 0; font-size: 20px;">Deel → Rippling</div>
+                <div style="font-size: 48px; color: #e94560;">↑↑↑ huge gap</div>
+                <div class="diagram-label">Unachievable 10x</div>
+            </div>
+        </div>
+        <p style="font-size: 28px; text-align: center; margin-top: 20px;">Same strategy. <span class="highlight">Different cost to execute.</span></p>
+    </div>
+
+    <!-- Slide 8: The Mistake -->
+    <div class="slide">
+        <h2>The Mistake</h2>
+        <ul>
+            <li>The strategy was right <em>in theory</em></li>
+            <li>But we didn't define its <span class="highlight">boundaries</span></li>
+            <li><span class="crossed">"Work harder"</span> is not a pivot</li>
+            <li>Should have asked: where can we <em>actually</em> achieve 10x?</li>
+        </ul>
+    </div>
+
+    <!-- Slide 9: Takeaway -->
+    <div class="slide takeaway">
+        <p class="big-text">"A secret is only valuable where you can <span class="highlight">act on it</span>.<br><br>Know the boundaries of your strategy—not just the strategy itself."</p>
+    </div>
+
+    <div class="progress" id="progress"></div>
+    <div class="slide-number" id="slide-number">1 / 9</div>
+    <div class="controls">← → or click to navigate</div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        let current = 0;
+
+        function showSlide(n) {
+            slides[current].classList.remove('active');
+            current = (n + slides.length) % slides.length;
+            slides[current].classList.add('active');
+            document.getElementById('slide-number').textContent = `${current + 1} / ${slides.length}`;
+            document.getElementById('progress').style.width = `${((current + 1) / slides.length) * 100}%`;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') showSlide(current + 1);
+            if (e.key === 'ArrowLeft') showSlide(current - 1);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.clientX > window.innerWidth / 2) {
+                showSlide(current + 1);
+            } else {
+                showSlide(current - 1);
+            }
+        });
+    </script>
+</body>
+</html>
