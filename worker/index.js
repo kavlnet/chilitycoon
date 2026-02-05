@@ -4,7 +4,7 @@ const PARADIGM_ATTRIBUTES = ["authenticity", "presentation", "speed_of_service",
 // Testing
 const DEFAULT_CONFIG = {
   roundDuration: 30,
-  resultsDuration: 8,
+  resultsDuration: 15,
   totalRounds: 30,
   paradigmShiftRound: 15,
   startingBar: 42,
