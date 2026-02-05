@@ -274,7 +274,7 @@ header h1 {
     padding: 6px 10px;
     border: 3px solid var(--border-color);
     border-radius: 6px;
-    font-size: 16px;
+    font-size: 22px;
     color: var(--text-muted);
     background: var(--bg-dark);
 }
@@ -292,7 +292,7 @@ header h1 {
     padding: 12px;
     margin: 12px 0;
     color: var(--accent-yellow);
-    font-size: 16px;
+    font-size: 22px;
     line-height: 1.4;
 }
 
@@ -305,7 +305,7 @@ header h1 {
 }
 
 .vote-panel h4 {
-    font-size: 16px;
+    font-size: 22px;
     margin-bottom: 10px;
     color: var(--accent-yellow);
 }
@@ -316,7 +316,7 @@ header h1 {
     gap: 8px;
     align-items: center;
     margin-bottom: 8px;
-    font-size: 16px;
+    font-size: 22px;
 }
 
 .vote-item.locked .vote-label {
@@ -348,7 +348,7 @@ header h1 {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    font-size: 16px;
+    font-size: 22px;
 }
 
 .judgment-item .value {
@@ -497,10 +497,11 @@ header h1 {
 /* ============ GAME SCREEN ============ */
 .game-container {
     display: grid;
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: 1fr 280px;
     grid-template-rows: auto 1fr;
     min-height: 100vh;
     gap: 0;
+    font-size: 24px;
 }
 
 .game-header {
@@ -524,7 +525,7 @@ header h1 {
     border: 3px solid #c84444;
     padding: 8px 16px;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 24px;
     color: var(--text);
     box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
 }
@@ -546,12 +547,12 @@ header h1 {
 }
 
 #round-display {
-    font-size: 18px;
+    font-size: 24px;
     color: var(--text-muted);
 }
 
 .cash {
-    font-size: 24px;
+    font-size: 32px;
     color: var(--accent-green);
     text-shadow: 2px 2px 0 #2a8a3a;
 }
@@ -604,7 +605,7 @@ header h1 {
 }
 
 #waiting-screen h2 {
-    font-size: 24px;
+    font-size: 32px;
     color: var(--accent-yellow);
     margin-bottom: 20px;
 }
@@ -627,21 +628,21 @@ header h1 {
 }
 
 .rule-number {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background: var(--accent-red);
     border: 3px solid #c84444;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 24px;
     flex-shrink: 0;
     box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
 }
 
 .rule-text {
-    font-size: 16px;
+    font-size: 22px;
     line-height: 1.4;
 }
 
@@ -651,7 +652,7 @@ header h1 {
 }
 
 #waiting-teams h3 {
-    font-size: 18px;
+    font-size: 24px;
     color: var(--accent-yellow);
     margin-bottom: 12px;
 }
@@ -678,13 +679,13 @@ header h1 {
 }
 
 .round-content h2 {
-    font-size: 24px;
+    font-size: 32px;
     color: var(--accent-yellow);
     margin: 24px 0 12px;
 }
 
 .round-content .hint {
-    font-size: 16px;
+    font-size: 22px;
     color: var(--text-muted);
     margin-bottom: 24px;
     line-height: 1.4;
@@ -736,7 +737,7 @@ header h1 {
 }
 
 .timer-text {
-    font-size: 28px;
+    font-size: 36px;
     color: var(--accent-green);
     text-shadow: 2px 2px 0 #2a8a3a;
 }
@@ -744,7 +745,7 @@ header h1 {
 .speed-bonus {
     padding: 8px 16px;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 22px;
     border: 3px solid;
 }
 
@@ -833,16 +834,16 @@ header h1 {
 }
 
 .bar-icon {
-    font-size: 28px;
+    font-size: 36px;
 }
 
 .bar-label {
     flex: 1;
-    font-size: 18px;
+    font-size: 24px;
 }
 
 .bar-level {
-    font-size: 22px;
+    font-size: 28px;
     color: var(--accent-teal);
     text-shadow: 1px 1px 0 #2a8a8a;
 }
@@ -883,7 +884,7 @@ header h1 {
     background: var(--accent-green);
     border: 4px solid #3ab854;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 24px;
     color: var(--text-dark);
     animation: slide-in-up 0.3s ease-out;
     box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
@@ -917,7 +918,7 @@ header h1 {
 }
 
 .deal-outcome {
-    font-size: 32px;
+    font-size: 40px;
     padding: 24px 32px;
     border-radius: 12px;
     display: inline-block;
@@ -956,7 +957,7 @@ header h1 {
 }
 
 .result-decision {
-    font-size: 16px;
+    font-size: 22px;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
@@ -966,7 +967,7 @@ header h1 {
 }
 
 .result-payout {
-    font-size: 32px;
+    font-size: 40px;
 }
 
 .result-payout.positive {
@@ -979,7 +980,7 @@ header h1 {
 }
 
 .result-bonus {
-    font-size: 16px;
+    font-size: 22px;
     color: var(--accent-yellow);
     margin-top: 8px;
 }
@@ -1000,7 +1001,7 @@ header h1 {
     background: var(--bg-panel);
     border: 3px solid var(--border-color);
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 22px;
 }
 
 .result-bar.built {
@@ -1026,13 +1027,13 @@ header h1 {
 }
 
 .feedback-panel h3 {
-    font-size: 18px;
+    font-size: 24px;
     color: var(--accent-yellow);
     margin-bottom: 8px;
 }
 
 .feedback-panel .hint {
-    font-size: 16px;
+    font-size: 20px;
     color: var(--text-muted);
     margin-bottom: 16px;
 }
@@ -1049,7 +1050,7 @@ header h1 {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 10px;
-    font-size: 16px;
+    font-size: 22px;
     line-height: 1.4;
 }
 
@@ -1063,7 +1064,7 @@ header h1 {
 
 .feedback-outcome {
     display: inline-block;
-    font-size: 14px;
+    font-size: 18px;
     padding: 4px 8px;
     border-radius: 4px;
     margin-right: 8px;
@@ -1089,7 +1090,7 @@ header h1 {
 }
 
 #gameover-screen h1 {
-    font-size: 48px;
+    font-size: 56px;
     color: var(--accent-yellow);
     text-shadow: 4px 4px 0 #8a7a2a;
     margin-bottom: 24px;
@@ -1097,13 +1098,13 @@ header h1 {
 }
 
 .game-over-message {
-    font-size: 22px;
+    font-size: 28px;
     margin-bottom: 24px;
     color: var(--text-muted);
 }
 
 .game-over-message.winner {
-    font-size: 28px;
+    font-size: 34px;
     color: var(--accent-yellow);
     text-shadow: 2px 2px 0 #8a7a2a;
 }
@@ -1141,18 +1142,18 @@ header h1 {
 }
 
 .final-rank {
-    font-size: 24px;
+    font-size: 30px;
     width: 60px;
 }
 
 .final-team {
     flex: 1;
     text-align: left;
-    font-size: 18px;
+    font-size: 24px;
 }
 
 .final-cash {
-    font-size: 22px;
+    font-size: 28px;
     color: var(--accent-green);
 }
 
@@ -1163,12 +1164,12 @@ header h1 {
 /* ============ LEADERBOARD SIDEBAR ============ */
 .leaderboard {
     background: var(--bg-panel);
-    padding: 16px;
+    padding: 20px;
     border-left: 4px solid var(--border-light);
 }
 
 .leaderboard h3 {
-    font-size: 16px;
+    font-size: 20px;
     color: var(--accent-yellow);
     margin-bottom: 12px;
     text-transform: uppercase;
@@ -1181,7 +1182,7 @@ header h1 {
     gap: 8px;
     padding: 8px;
     border-bottom: 2px solid var(--border-color);
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .leaderboard-entry:last-child {
