@@ -16,7 +16,6 @@ const elements = {
     shiftRound: document.getElementById('shift-round'),
     stateDisplay: document.getElementById('state-display'),
     leaderboard: document.getElementById('leaderboard'),
-    newTeamName: document.getElementById('new-team-name'),
     createTeamBtn: document.getElementById('create-team-btn'),
     teamsList: document.getElementById('teams-list'),
 };
@@ -80,15 +79,25 @@ if (elements.applyConfig) {
     });
 }
 
+const TEAM_ADJECTIVES = [
+    'Fiery', 'Spicy', 'Blazing', 'Hot', 'Smoky', 'Sizzling', 'Scorching', 'Flaming',
+    'Roasted', 'Grilled', 'Zesty', 'Tangy', 'Bold', 'Wild', 'Crazy', 'Lucky'
+];
+const TEAM_NOUNS = [
+    'Peppers', 'Chilies', 'Jalapeños', 'Habaneros', 'Ghosts', 'Reapers', 'Flames',
+    'Dragons', 'Infernos', 'Volcanos', 'Embers', 'Sparks', 'Blasters', 'Titans'
+];
+
+function generateRandomTeamName() {
+    const adj = TEAM_ADJECTIVES[Math.floor(Math.random() * TEAM_ADJECTIVES.length)];
+    const noun = TEAM_NOUNS[Math.floor(Math.random() * TEAM_NOUNS.length)];
+    return `${adj} ${noun}`;
+}
+
 if (elements.createTeamBtn) {
     elements.createTeamBtn.addEventListener('click', async () => {
-        const teamName = elements.newTeamName.value.trim();
-        if (!teamName) {
-            alert('Please enter a team name');
-            return;
-        }
+        const teamName = generateRandomTeamName();
         await hostAction('create_team', { teamName });
-        elements.newTeamName.value = '';
         await refreshTeams();
     });
 }
