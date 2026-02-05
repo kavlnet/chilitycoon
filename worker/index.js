@@ -255,7 +255,7 @@ function generateFeedback({ weights, won, attributes, biasAttribute }) {
   return parts.join(" ");
 }
 
-export class GameRoom {
+export class GameRoomV2 {
   constructor(state, env) {
     this.state = state;
     this.env = env;
@@ -1184,8 +1184,8 @@ export default {
     if (url.pathname === "/api/room" && request.method === "POST") {
       const roomId = randomId(6);
       const hostKey = randomId(10);
-      const id = env.GAME_ROOM.idFromName(roomId);
-      const stub = env.GAME_ROOM.get(id);
+      const id = env.GAME_ROOM_V2.idFromName(roomId);
+      const stub = env.GAME_ROOM_V2.get(id);
       await stub.fetch(new Request(`https://game/api/room/${roomId}/initialize`, {
         method: "POST",
         body: JSON.stringify({ hostKey }),
@@ -1197,8 +1197,8 @@ export default {
       const parts = url.pathname.split("/");
       const roomId = parts[3];
       if (!roomId) return new Response("Room required", { status: 400 });
-      const id = env.GAME_ROOM.idFromName(roomId);
-      const stub = env.GAME_ROOM.get(id);
+      const id = env.GAME_ROOM_V2.idFromName(roomId);
+      const stub = env.GAME_ROOM_V2.get(id);
       return stub.fetch(request);
     }
 
