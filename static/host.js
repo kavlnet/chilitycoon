@@ -71,7 +71,7 @@ if (elements.addBots) elements.addBots.addEventListener('click', () => hostActio
 if (elements.applyConfig) {
     elements.applyConfig.addEventListener('click', () => {
         const config = {
-            roundDuration: Number(elements.roundDuration.value || 30),
+            roundDuration: Number(elements.roundDuration.value || 15),
             totalRounds: Number(elements.totalRounds.value || 30),
             paradigmShiftRound: Number(elements.shiftRound.value || 15),
         };
