@@ -610,6 +610,14 @@ header h1 {
     margin-bottom: 20px;
 }
 
+.waiting-summary {
+    max-width: 560px;
+    margin: 0 auto 24px;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1.5;
+}
+
 .quick-rules {
     max-width: 500px;
     margin: 32px auto;
