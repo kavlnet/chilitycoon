@@ -15,6 +15,7 @@ new_sqlite_classes = ["GameRoom"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["GameRoomV2"]
+deleted_classes = ["GameRoom"]
 
 [[routes]]
 pattern = "chilitycoon.com"
