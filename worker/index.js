@@ -104,6 +104,18 @@ const FEEDBACK = {
     "Third visit now and I think I've figured out what keeps me coming back.",
     "Friend dragged me here against my better judgment. Okay, fine, they were right.",
     "Random Tuesday lunch that turned into a pleasant surprise.",
+    "Dropped in after work and was pleasantly surprised.",
+    "Came here with a group and it won me over.",
+    "Had this on my list and it delivered.",
+    "Quick lunch break that turned into a new favorite.",
+    "First time here and it set a solid bar.",
+    "Tried it during a busy rush and it still impressed.",
+    "We were debating where to eat and this choice paid off.",
+    "Stopped in while traveling and would come back.",
+    "Wasn't sure what to expect, but it hit.",
+    "Went in skeptical, walked out satisfied.",
+    "Grabbed a bowl on a rainy day and it was exactly right.",
+    "Finally made it here and I'm glad I did.",
   ],
   openingsNegative: [
     "Had high hopes based on the reviews but reality was different.",
@@ -111,107 +123,259 @@ const FEEDBACK = {
     "Tried to like it, I really did.",
     "The hype had me expecting more, I'll be honest.",
     "Was in the mood for something great, left feeling meh.",
+    "Went in excited, left a bit let down.",
+    "Came by after hearing good things and it didn't land.",
+    "First visit and it missed the mark for me.",
+    "Tried it during a rush and it felt underwhelming.",
+    "Stopped in for lunch and it was just okay.",
+    "Wanted to be impressed, but it fell short.",
+    "Brought friends and it didn't live up to the chatter.",
+    "Gave it a shot and it was forgettable.",
+    "Walked in hungry, walked out still wanting more.",
+    "I was rooting for it, but it didn't quite click.",
+    "Had higher expectations than the experience delivered.",
+    "Left thinking it could be so much better.",
+  ],
+  closingsPositive: [
+    "Would gladly order this again.",
+    "I can see myself coming back.",
+    "This earned a repeat visit.",
+    "It will be in my rotation.",
+    "Recommend it without hesitation.",
+    "I would bring friends here.",
+    "It sticks with you.",
+    "Hope they keep it like this.",
+  ],
+  closingsNegative: [
+    "Not sure I'd return.",
+    "Probably a one-and-done for me.",
+    "I wouldn't go out of my way for it.",
+    "Needs work before I'd come back.",
+    "Left me on the fence about returning.",
+    "Hard to justify another visit.",
+    "Might give it another shot, but not soon.",
+    "It didn't leave a strong reason to return.",
   ],
   misdirection: {
     spiciness: [
       "The heat level was fine I guess - they have different options which is nice.",
       "Spice-wise it was what you'd expect. Nothing too memorable.",
+      "Heat was okay but didn't steal the show.",
+      "The spice level sat in the background for me.",
+      "Spice was middle-of-the-road, nothing bold.",
+      "Heat was manageable, not a headline.",
+      "They offer heat, but it didn't stand out.",
     ],
     flavor: [
       "Taste was acceptable - standard chili profile, nothing revolutionary.",
       "The flavor was there. Not mind-blowing but not offensive either.",
+      "Flavor was fine and familiar, nothing complex.",
+      "Seasoning was serviceable, pretty standard.",
+      "Taste was steady but not standout.",
+      "The flavor profile felt safe.",
+      "Flavor was present but plain.",
     ],
     portion: [
       "Size was reasonable for the price point. Not huge but I wasn't hungry after.",
       "Portions seemed standard - I've seen bigger but also smaller.",
+      "Serving size was normal for this kind of place.",
+      "Not tiny, not huge - just average.",
+      "Portion was fine, didn't wow.",
+      "Bowl size was standard.",
+      "The portion felt adequate, nothing more.",
     ],
     ambiance: [
       "The space is fine - typical casual spot, nothing fancy but clean.",
       "Decor is what it is. Not why you come here.",
+      "Atmosphere was fine, pretty typical.",
+      "Space was clean but unremarkable.",
+      "Vibe was neutral and low-key.",
+      "Nothing special about the setting.",
+      "Ambiance was okay, not a draw.",
     ],
     authenticity: [
       "Can't really tell if they're going for authentic or not. Standard approach.",
       "Didn't get any particular cultural vibe. Just straightforward.",
+      "Authenticity didn't stand out either way.",
+      "Felt mainstream, not super traditional.",
+      "It read more general than specific.",
+      "Didn't get a strong cultural signal.",
+      "Hard to tell what lane they were going for.",
     ],
     presentation: [
       "Not Instagram-worthy but that's okay. I'm here to eat, not photograph.",
       "The visual aspect is fine. Standard bowls, standard setup.",
+      "Looks were fine, nothing fancy.",
+      "Plating was simple and expected.",
+      "Presentation was average overall.",
+      "Visuals were okay, no frills.",
+      "Not a showpiece by any means.",
     ],
     speed_of_service: [
       "Service was average speed. Not particularly fast or slow.",
       "Food came out in a reasonable time. Nothing notable.",
+      "Timing was normal for a lunch spot.",
+      "Service speed was average.",
+      "Wait was reasonable, nothing notable.",
+      "It came out in a standard window.",
+      "The pace felt typical.",
     ],
     value: [
       "Price seemed about right for what you get. Standard markup.",
       "Cost is what you'd expect. Not cheap but not outrageous.",
+      "Price felt average for this kind of meal.",
+      "Value was about what I expected.",
+      "Pricing was standard across the board.",
+      "It was fine for the money.",
+      "Not a bargain, not a splurge.",
     ],
   },
   signalsPositive: {
     spiciness: [
       "I do think their approach to building the heat is what sets them apart though.",
       "That kick at the end really elevates it.",
+      "The heat builds in a way that feels intentional.",
+      "They nail the spice balance.",
+      "The kick at the finish is what you remember.",
+      "Spice is the star here.",
+      "The heat level is bold but controlled.",
     ],
     flavor: [
       "What really got me was the depth. You can taste they thought about the recipe.",
       "The balance is impeccable. Nothing dominates, everything contributes.",
+      "Depth of flavor is the real win.",
+      "The seasoning has a clear point of view.",
+      "Flavor complexity is impressive.",
+      "The blend feels thoughtfully built.",
+      "Taste is the main attraction.",
     ],
     portion: [
       "Left genuinely satisfied which is rare these days.",
       "They're not being stingy with the portions here. Refreshing.",
+      "Portion size felt generous.",
+      "You leave full, no question.",
+      "It is a hearty bowl.",
+      "Serving size punches above its price.",
+      "The amount you get is the standout.",
     ],
     ambiance: [
       "The vibe they've created here is special. It's not trying too hard but it works.",
       "It feels like a neighborhood spot even though I don't live here.",
+      "The vibe is warm and inviting.",
+      "Atmosphere makes you want to hang out.",
+      "The room feels lively in a good way.",
+      "It has a cozy, local feel.",
+      "The setting is part of the appeal.",
     ],
     authenticity: [
       "There's something real here. You can taste that someone cares about doing it right.",
       "It tastes like it has a story. Like someone's grandmother would approve.",
+      "Authenticity shines through.",
+      "It feels rooted and honest.",
+      "You can tell they care about doing it right.",
+      "There is a real sense of craft and heritage.",
+      "It has that old-school feel.",
     ],
     presentation: [
       "It looked like someone actually cared about plating. That matters.",
       "The colors and presentation made it feel premium.",
+      "Presentation elevates the whole experience.",
+      "The plating makes it feel premium.",
+      "It looks as good as it tastes.",
+      "Visuals are polished and intentional.",
+      "They put care into how it arrives.",
     ],
     speed_of_service: [
       "It hit the table shockingly fast, in a good way.",
       "The pace was dialed in - quick but not rushed.",
+      "It hit the table fast without feeling rushed.",
+      "Service speed is the edge here.",
+      "They are quick and on top of it.",
+      "You do not wait long at all.",
+      "Fast service makes the meal feel smooth.",
     ],
     value: [
       "For the price, this felt like a steal.",
       "Bang for buck is the real story here.",
+      "Value is the big win.",
+      "It feels like more than you paid for.",
+      "Price-to-portion ratio is excellent.",
+      "For the cost, it over-delivers.",
+      "You get a lot for your money.",
     ],
   },
   signalsNegative: {
     spiciness: [
       "The heat just didn't land for me. Felt flat.",
       "I wanted more kick - it played things too safe.",
+      "Heat was timid.",
+      "Spice level played it too safe.",
+      "Lacked the kick I wanted.",
+      "Heat faded fast.",
+      "Spice felt muted.",
     ],
     flavor: [
       "The taste was kind of one-note.",
       "Seasoning felt muted. Something was missing.",
+      "Flavor lacked depth.",
+      "Seasoning was flat.",
+      "Taste needed more complexity.",
+      "Flavor did not pop.",
+      "The profile was bland.",
     ],
     portion: [
       "The bowl was smaller than I expected.",
       "Left wishing I'd ordered something else too.",
+      "Serving size felt light.",
+      "Portion left me wanting more.",
+      "Not filling for the price.",
+      "Portion is the weak point.",
+      "It felt skimpy.",
     ],
     ambiance: [
       "The space felt cold and a little awkward.",
       "It didn't feel like a place you'd want to linger.",
+      "The room felt sterile.",
+      "Atmosphere was off.",
+      "Vibe made me want to leave.",
+      "Setting felt awkward.",
+      "It did not feel welcoming.",
     ],
     authenticity: [
       "It felt a little corporate - lacked that real touch.",
       "I was hoping for more tradition and soul.",
+      "It felt like a watered-down version.",
+      "Lacked that genuine touch.",
+      "Authenticity was missing.",
+      "It came off generic.",
+      "I wanted more tradition.",
     ],
     presentation: [
       "It looked rushed, which didn't inspire confidence.",
       "The presentation felt careless.",
+      "The presentation felt sloppy.",
+      "It looked rushed and thrown together.",
+      "Visuals were messy.",
+      "Not appealing to look at.",
+      "The plating was careless.",
     ],
     speed_of_service: [
       "The wait dragged on longer than it should have.",
       "Service pace was a mess.",
+      "Service dragged.",
+      "The wait was too long.",
+      "Pace was sluggish.",
+      "It took forever to arrive.",
+      "Timing was off.",
     ],
     value: [
       "It didn't feel worth the price.",
       "A bit overpriced for what you get.",
+      "The price felt high for what it was.",
+      "Value did not line up with cost.",
+      "Not worth the bill.",
+      "Cost is the pain point.",
+      "Price stung.",
     ],
   },
 };
@@ -245,14 +409,29 @@ function generateFeedback({ weights, won, attributes, biasAttribute }) {
 
   const misdirectionList = FEEDBACK.misdirection[misdirectAttr] || [];
   const signalList = won ? FEEDBACK.signalsPositive[driver] : FEEDBACK.signalsNegative[driver];
+  const closingList = won ? FEEDBACK.closingsPositive : FEEDBACK.closingsNegative;
 
   const misdirection = misdirectionList.length
     ? misdirectionList[Math.floor(Math.random() * misdirectionList.length)]
     : "";
   const signal = signalList ? signalList[Math.floor(Math.random() * signalList.length)] : "";
+  const includeClosing = closingList?.length && Math.random() < 0.6;
+  const closing =
+    includeClosing && closingList
+      ? closingList[Math.floor(Math.random() * closingList.length)]
+      : "";
 
-  const parts = [opening, misdirection, signal].filter(Boolean);
+  const parts = [opening, misdirection, signal, closing].filter(Boolean);
   return parts.join(" ");
+}
+
+function generateFeedbackUnique({ weights, won, attributes, biasAttribute, avoid, maxTries = 6 }) {
+  let text = "";
+  for (let i = 0; i < maxTries; i++) {
+    text = generateFeedback({ weights, won, attributes, biasAttribute });
+    if (!avoid || !avoid.has(text)) break;
+  }
+  return text;
 }
 
 export class GameRoomV2 {
@@ -501,6 +680,7 @@ export class GameRoomV2 {
       decisionTime: null,
       locked: false,
       currentDecision: null,
+      feedbackRecent: [],
       isBot: false,
     };
   }
@@ -921,7 +1101,7 @@ export class GameRoomV2 {
         fallback: usedFallback,
       };
 
-      feedback[team.name] = this.generateFeedbackItems(won);
+      feedback[team.name] = this.generateFeedbackItems(won, team.name);
     }
 
     const debug = {
@@ -975,19 +1155,29 @@ export class GameRoomV2 {
     return "miss";
   }
 
-  generateFeedbackItems(won) {
+  generateFeedbackItems(won, teamName) {
     const items = [];
     const bias = this.game.feedbackBiasRounds > 0 ? this.game.paradigmAttribute : null;
+    const team = teamName ? this.game.teams[teamName] : null;
+    const recent = Array.isArray(team?.feedbackRecent) ? team.feedbackRecent : [];
+    const avoid = new Set(recent);
     for (let i = 0; i < 3; i++) {
+      const text = generateFeedbackUnique({
+        weights: this.game.market.weights,
+        won,
+        attributes: this.game.market.attributes,
+        biasAttribute: bias,
+        avoid,
+      });
       items.push({
-        text: generateFeedback({
-          weights: this.game.market.weights,
-          won,
-          attributes: this.game.market.attributes,
-          biasAttribute: bias,
-        }),
+        text,
         won,
       });
+      avoid.add(text);
+      recent.push(text);
+    }
+    if (team) {
+      team.feedbackRecent = recent.slice(-6);
     }
     return items;
   }
