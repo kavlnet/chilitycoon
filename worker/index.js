@@ -97,6 +97,19 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function normalizeTeamKey(name) {
+  return name.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function resolveTeamName(requested, teams) {
+  const normalized = normalizeTeamKey(requested);
+  if (!normalized) return requested;
+  for (const existing of Object.keys(teams)) {
+    if (normalizeTeamKey(existing) === normalized) return existing;
+  }
+  return requested;
+}
+
 const FEEDBACK = {
   openingsPositive: [
     "Finally got around to trying this place after hearing about it for months.",
@@ -553,8 +566,9 @@ export class GameRoomV2 {
     const playerId = url.searchParams.get("playerId") || randomId(8);
     const teamNameRaw = url.searchParams.get("team") || "spectator";
     const name = url.searchParams.get("name") || "Player";
-    const teamName = decodeURIComponent(teamNameRaw);
-    const isSpectator = teamName.toLowerCase() === "spectator";
+    const requestedTeamName = decodeURIComponent(teamNameRaw);
+    const isSpectator = requestedTeamName.toLowerCase() === "spectator";
+    const teamName = isSpectator ? requestedTeamName : resolveTeamName(requestedTeamName, this.game.teams);
 
     const pair = new WebSocketPair();
     const client = pair[0];
@@ -693,7 +707,11 @@ export class GameRoomV2 {
     if (name.length > 20) {
       return { ok: false, error: "Team name too long (max 20 characters)" };
     }
-    if (this.game.teams[name]) {
+    const normalized = normalizeTeamKey(name);
+    const existing = Object.keys(this.game.teams).find(
+      (team) => normalizeTeamKey(team) === normalized
+    );
+    if (existing) {
       return { ok: false, error: "Team already exists" };
     }
     this.game.teams[name] = this.createTeam(name);
@@ -1019,6 +1037,8 @@ export class GameRoomV2 {
     const marketStandard = this.game.config.standardBar;
     const weights = this.game.market.weights;
     const hotAttribute = getHotAttribute(weights);
+    const resultsDuration = this.game.config.resultsDuration;
+    this.game.resultsEndAt = Date.now() + resultsDuration * 1000;
 
     for (const team of Object.values(this.game.teams)) {
       // Depreciation
@@ -1121,6 +1141,7 @@ export class GameRoomV2 {
         results,
         feedback: socketInfo.role === "player" ? feedback[teamName] || [] : [],
         leaderboard: this.getLeaderboard(),
+        resultsDuration,
         debug,
         judgment: socketInfo.role === "player" ? results[teamName]?.judgment : null,
         speedTier: socketInfo.role === "player" ? results[teamName]?.speedTier : null,
@@ -1132,7 +1153,6 @@ export class GameRoomV2 {
       leaderboard: this.getLeaderboard(),
     });
 
-    this.game.resultsEndAt = Date.now() + this.game.config.resultsDuration * 1000;
     await this.state.storage.setAlarm(this.game.resultsEndAt);
     await this.persistState();
   }

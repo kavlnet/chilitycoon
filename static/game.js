@@ -26,6 +26,8 @@ const elements = {
     speedBonus: document.getElementById('speed-bonus'),
     submittedIndicator: document.getElementById('submitted-indicator'),
     feedbackContainer: document.getElementById('feedback-container'),
+    feedbackTimerFill: document.getElementById('feedback-timer-fill'),
+    feedbackTimerText: document.getElementById('feedback-timer-text'),
     yourDecision: document.getElementById('your-decision'),
     yourPayout: document.getElementById('your-payout'),
     yourBonus: document.getElementById('your-bonus'),
@@ -65,6 +67,7 @@ let gameState = {
     attributes: [],
     voted: null,
     timerInterval: null,
+    resultsTimerInterval: null,
     lastBeepSecond: null,
 };
 
@@ -173,6 +176,7 @@ async function handleRoundStart(data) {
     gameState.phase = 'round';
     gameState.round = data.round;
     gameState.voted = null;
+    clearResultsTimer();
     gameState.bars = data.bars || gameState.bars;
     gameState.cash = data.cash !== undefined ? data.cash : gameState.cash;
     gameState.attributes = data.attributes || gameState.attributes;
@@ -368,11 +372,60 @@ function startTimer(duration) {
     gameState.timerInterval = setInterval(updateTimer, 100);
 }
 
+function clearResultsTimer() {
+    if (gameState.resultsTimerInterval) {
+        clearInterval(gameState.resultsTimerInterval);
+        gameState.resultsTimerInterval = null;
+    }
+    if (elements.feedbackTimerFill) {
+        elements.feedbackTimerFill.style.width = '100%';
+        elements.feedbackTimerFill.classList.remove('urgent', 'critical');
+    }
+    if (elements.feedbackTimerText) {
+        elements.feedbackTimerText.textContent = '--';
+    }
+}
+
+function startResultsTimer(duration) {
+    if (!duration || !elements.feedbackTimerFill || !elements.feedbackTimerText) return;
+    const startTime = Date.now();
+    const endTime = startTime + (duration * 1000);
+
+    if (gameState.resultsTimerInterval) {
+        clearInterval(gameState.resultsTimerInterval);
+    }
+
+    function updateResultsTimer() {
+        const now = Date.now();
+        const remaining = Math.max(0, (endTime - now) / 1000);
+        const pct = (remaining / duration) * 100;
+
+        elements.feedbackTimerFill.style.width = `${pct}%`;
+        elements.feedbackTimerText.textContent = `${Math.ceil(remaining)}s`;
+
+        elements.feedbackTimerFill.classList.remove('urgent', 'critical');
+        if (remaining <= 5) {
+            elements.feedbackTimerFill.classList.add('critical');
+        } else if (remaining <= 10) {
+            elements.feedbackTimerFill.classList.add('urgent');
+        }
+
+        if (remaining <= 0) {
+            clearInterval(gameState.resultsTimerInterval);
+            gameState.resultsTimerInterval = null;
+        }
+    }
+
+    updateResultsTimer();
+    gameState.resultsTimerInterval = setInterval(updateResultsTimer, 100);
+}
+
 function handleRoundResults(data) {
     gameState.phase = 'results';
     if (gameState.timerInterval) {
         clearInterval(gameState.timerInterval);
     }
+    startResultsTimer(data.resultsDuration);
 
     const myResult = data.results[teamName];
 

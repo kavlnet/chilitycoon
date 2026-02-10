@@ -44,7 +44,9 @@
                 </div>
                 <div class="form-group">
                     <label for="team-name">Team Name</label>
-                    <input type="text" id="team-name" placeholder="Enter team name" maxlength="20">
+                    <input type="text" id="team-name" placeholder="Enter team name" maxlength="20" list="team-options">
+                    <datalist id="team-options"></datalist>
+                    <div id="team-status" class="team-status">Select a team below or type a new name.</div>
                 </div>
                 <div class="form-group">
                     <label for="player-name">Your Name</label>
@@ -87,11 +89,14 @@
         const joinBtn = document.getElementById('join-btn');
         const spectateBtn = document.getElementById('spectate-btn');
         const teamsContainer = document.getElementById('teams-container');
+        const teamStatus = document.getElementById('team-status');
+        const teamOptions = document.getElementById('team-options');
         const createRoomBtn = document.getElementById('create-room-btn');
         const roomCreated = document.getElementById('room-created');
         const roomCodeEl = document.getElementById('room-code');
         const hostLink = document.getElementById('host-link');
         const copyRoomBtn = document.getElementById('copy-room-btn');
+        let currentTeams = [];
 
         function setStored(key, value) {
             localStorage.setItem(key, value);
@@ -112,15 +117,50 @@
             return id;
         }
 
+        function normalizeTeamName(name) {
+            return name.toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        function findExactTeamMatch(input) {
+            const normalized = normalizeTeamName(input);
+            if (!normalized) return null;
+            return currentTeams.find(team => normalizeTeamName(team) === normalized) || null;
+        }
+
+        function updateTeamStatus() {
+            const input = teamInput.value.trim();
+            const match = findExactTeamMatch(input);
+            if (!input) {
+                teamStatus.textContent = 'Select a team below or type a new name.';
+                joinBtn.textContent = 'Join Game';
+            } else if (match) {
+                teamStatus.textContent = `Joining team: ${match}`;
+                joinBtn.textContent = 'Join Team';
+            } else {
+                teamStatus.textContent = 'No matching team — this will create a new team.';
+                joinBtn.textContent = 'Create Team';
+            }
+            document.querySelectorAll('.team-card').forEach(card => {
+                card.classList.toggle('selected', match && card.dataset.team === match);
+            });
+        }
+
         async function loadTeams(roomId) {
             if (!roomId) {
                 teamsContainer.innerHTML = '<p class="empty-state">Enter a room code to see teams.</p>';
+                currentTeams = [];
+                if (teamOptions) teamOptions.innerHTML = '';
+                updateTeamStatus();
                 return;
             }
             try {
                 const response = await fetch(`/api/room/${encodeURIComponent(roomId)}/teams`);
                 if (!response.ok) throw new Error('Failed');
                 const data = await response.json();
+                currentTeams = (data.teams || []).map(team => team.name);
+                if (teamOptions) {
+                    teamOptions.innerHTML = currentTeams.map(name => `<option value="${name}"></option>`).join('');
+                }
                 if (!data.teams || data.teams.length === 0) {
                     teamsContainer.innerHTML = '<p class="empty-state">No teams yet. Create one!</p>';
                 } else {
@@ -134,13 +174,18 @@
                         card.addEventListener('click', () => selectTeam(card.dataset.team));
                     });
                 }
+                updateTeamStatus();
             } catch (err) {
                 teamsContainer.innerHTML = '<p class="empty-state">Room not found yet.</p>';
+                currentTeams = [];
+                if (teamOptions) teamOptions.innerHTML = '';
+                updateTeamStatus();
             }
         }
 
         function selectTeam(name) {
             teamInput.value = name;
+            updateTeamStatus();
         }
         window.selectTeam = selectTeam;
 
@@ -178,12 +223,18 @@
 
         joinBtn.addEventListener('click', () => {
             const roomId = roomInput.value.trim();
-            const teamName = teamInput.value.trim();
+            const teamNameInput = teamInput.value.trim();
             const playerName = nameInput.value.trim();
-            if (!roomId || !teamName || !playerName) {
+            if (!roomId || !teamNameInput || !playerName) {
                 alert('Please enter room code, team name, and your name.');
                 return;
             }
+            const matchedTeam = findExactTeamMatch(teamNameInput);
+            if (!matchedTeam && currentTeams.length > 0) {
+                const ok = confirm(`No matching team found. Create new team "${teamNameInput}"?`);
+                if (!ok) return;
+            }
+            const teamName = matchedTeam || teamNameInput;
             const playerId = getOrCreatePlayerId(roomId, teamName, playerName);
             setStored('chili_roomId', roomId);
             setStored('chili_teamName', teamName);
@@ -204,6 +255,7 @@
         roomInput.addEventListener('input', () => {
             loadTeams(roomInput.value.trim());
         });
+        teamInput.addEventListener('input', updateTeamStatus);
 
         const params = new URLSearchParams(window.location.search);
         const presetRoom = params.get('room');
@@ -221,6 +273,7 @@
         if (storedTeam) teamInput.value = storedTeam;
         const storedName = getStored('chili_playerName');
         if (storedName) nameInput.value = storedName;
+        updateTeamStatus();
 
         setInterval(() => {
             const roomId = roomInput.value.trim();
