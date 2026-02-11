@@ -16,16 +16,23 @@ const DEFAULT_CONFIG = {
     { threshold: 20, bonus: 1.3 },
     { threshold: 30, bonus: 1.0 },
   ],
-  fallbackMultiplier: 0.7,
+  // Strong penalty when teams fail to lock a deliberate choice.
+  fallbackMultiplier: 0.5,
+  teamSizeGraceSeconds: 0.9,
+  judgmentBuildMultipliers: {
+    correct: 1.2,
+    near: 0.95,
+    miss: 0.7,
+  },
   basePayout: 30,
   marginMultiplier: 1.2,
   newAttributeWeight: 0.25,
 };
 
 const BOT_TEAMS = [
-  { name: "Speed Demons", strategy: "random_fast", delay: [2, 8] },
-  { name: "Careful Readers", strategy: "smart", delay: [15, 25] },
-  { name: "Chaos Crew", strategy: "random", delay: [5, 18] },
+  { name: "Speed Demons", strategy: "random_fast", delayRatio: [0.18, 0.45] },
+  { name: "Careful Readers", strategy: "smart", delayRatio: [0.35, 0.75] },
+  { name: "Chaos Crew", strategy: "random", delayRatio: [0.22, 0.65] },
 ];
 
 function jsonResponse(data, init = {}) {
@@ -486,6 +493,7 @@ export class GameRoomV2 {
         weights,
         trendTarget: pickTrendTarget(BASE_ATTRIBUTES),
         trendRoundsLeft: 3 + Math.floor(Math.random() * 3),
+        standardHistory: [],
       },
       paradigmShifted: false,
       paradigmAttribute: null,
@@ -850,6 +858,7 @@ export class GameRoomV2 {
     );
     this.game.market.trendTarget = pickTrendTarget(BASE_ATTRIBUTES);
     this.game.market.trendRoundsLeft = 3 + Math.floor(Math.random() * 3);
+    this.game.market.standardHistory = [];
 
     for (const team of Object.values(this.game.teams)) {
       team.cash = 0;
@@ -950,7 +959,41 @@ export class GameRoomV2 {
     for (const tier of this.game.config.speedBonuses) {
       if (decisionTime <= tier.threshold) return tier.bonus;
     }
-    return 0;
+    // Slow decisions still get baseline build credit once locked in.
+    return 1.0;
+  }
+
+  getTeamSizeAdjustedSeconds(seconds, teamSize) {
+    const grace = Math.max(0, (teamSize - 1) * this.game.config.teamSizeGraceSeconds);
+    return Math.max(0.25, seconds - grace);
+  }
+
+  getJudgmentBuildMultiplier(judgment) {
+    const table = this.game.config.judgmentBuildMultipliers || {};
+    if (judgment === "correct") return table.correct ?? 1.0;
+    if (judgment === "near") return table.near ?? 1.0;
+    return table.miss ?? 1.0;
+  }
+
+  computeDynamicMarketStandard(scores) {
+    if (!scores.length) return this.game.config.standardBar;
+
+    const sorted = [...scores].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+
+    const history = Array.isArray(this.game.market.standardHistory)
+      ? this.game.market.standardHistory
+      : [];
+    history.push(median);
+    this.game.market.standardHistory = history.slice(-5);
+
+    const rollingAvg = this.game.market.standardHistory.reduce((sum, v) => sum + v, 0)
+      / this.game.market.standardHistory.length;
+    const base = this.game.config.standardBar;
+    return clamp(rollingAvg, base * 0.75, base * 3.0);
   }
 
   async submitVote(playerId, decision) {
@@ -1034,11 +1077,11 @@ export class GameRoomV2 {
     const results = {};
     const feedback = {};
 
-    const marketStandard = this.game.config.standardBar;
     const weights = this.game.market.weights;
     const hotAttribute = getHotAttribute(weights);
     const resultsDuration = this.game.config.resultsDuration;
     this.game.resultsEndAt = Date.now() + resultsDuration * 1000;
+    const preBuildScores = {};
 
     for (const team of Object.values(this.game.teams)) {
       // Depreciation
@@ -1047,8 +1090,13 @@ export class GameRoomV2 {
         const depreciation = Math.max(1, Math.floor(current * this.game.config.barDepreciation));
         team.bars[attr] = Math.max(0, current - depreciation);
       }
+      preBuildScores[team.name] = this.calculateScore(team.bars, weights);
+    }
 
-      const scoreBeforeBuild = this.calculateScore(team.bars, weights);
+    const marketStandard = this.computeDynamicMarketStandard(Object.values(preBuildScores));
+
+    for (const team of Object.values(this.game.teams)) {
+      const scoreBeforeBuild = preBuildScores[team.name] || 0;
       const margin = scoreBeforeBuild - marketStandard;
       const won = margin > 0;
       const payout = won
@@ -1071,27 +1119,32 @@ export class GameRoomV2 {
           } else {
             if (team.lastDecision && tied.includes(team.lastDecision)) {
               decision = team.lastDecision;
-            } else if (tied.includes(hotAttribute)) {
-              decision = hotAttribute;
             } else {
               decision = tied[Math.floor(Math.random() * tied.length)];
             }
           }
         } else {
           usedFallback = true;
-          decision = team.lastDecision || hotAttribute;
+          decision = team.lastDecision
+            || this.game.market.attributes[Math.floor(Math.random() * this.game.market.attributes.length)];
         }
       }
 
       if (team.decisionTime != null) {
-        const seconds = team.decisionTime / 1000;
-        speedBonus = this.getSpeedBonus(seconds);
-        speedTier = seconds <= 10 ? "fast" : seconds <= 20 ? "medium" : "slow";
+        const rawSeconds = team.decisionTime / 1000;
+        const teamSize = team.players?.size || 1;
+        const adjustedSeconds = this.getTeamSizeAdjustedSeconds(rawSeconds, teamSize);
+        speedBonus = this.getSpeedBonus(adjustedSeconds);
+        speedTier = adjustedSeconds <= 10 ? "fast" : adjustedSeconds <= 20 ? "medium" : "slow";
       } else if (usedFallback) {
         speedTier = "fallback";
       }
 
-      let buildAmount = Math.floor(this.game.config.baseBuild * speedBonus);
+      const judgment = this.getJudgment(decision, weights);
+      const judgmentMultiplier = this.getJudgmentBuildMultiplier(judgment);
+      let buildAmount = decision
+        ? Math.floor(this.game.config.baseBuild * speedBonus * judgmentMultiplier)
+        : 0;
       if (usedFallback) {
         buildAmount = Math.floor(buildAmount * this.game.config.fallbackMultiplier);
       }
@@ -1102,8 +1155,6 @@ export class GameRoomV2 {
 
       team.cash += payout;
       team.lastDecision = decision;
-
-      const judgment = this.getJudgment(decision, weights);
 
       results[team.name] = {
         decision,
@@ -1116,6 +1167,7 @@ export class GameRoomV2 {
         speedBonus,
         speedTier,
         judgment,
+        judgmentMultiplier,
         totalCash: team.cash,
         bars: { ...team.bars },
         fallback: usedFallback,
@@ -1285,6 +1337,8 @@ export class GameRoomV2 {
     this.game.market.weights = normalizeWeights(this.game.market.weights);
     this.game.market.trendTarget = pickTrendTarget(this.game.market.attributes);
     this.game.market.trendRoundsLeft = 3 + Math.floor(Math.random() * 3);
+    // Reset standard history so threshold re-calibrates in the new regime.
+    this.game.market.standardHistory = [];
 
     for (const team of Object.values(this.game.teams)) {
       team.bars[newAttr] = 0;
@@ -1314,8 +1368,11 @@ export class GameRoomV2 {
 
     for (const bot of this.game.bots) {
       if (!this.game.teams[bot.name]) continue;
-      const delayRange = bot.delay;
-      const delayMs = (delayRange[0] + Math.random() * (delayRange[1] - delayRange[0])) * 1000;
+      const durationMs = this.game.config.roundDuration * 1000;
+      const delayRatio = bot.delayRatio || [0.2, 0.8];
+      const minDelayMs = Math.max(400, Math.floor(durationMs * delayRatio[0]));
+      const maxDelayMs = Math.max(minDelayMs + 250, Math.floor(durationMs * delayRatio[1]));
+      const delayMs = minDelayMs + Math.random() * (maxDelayMs - minDelayMs);
 
       const timeout = setTimeout(() => {
         const choice = this.getBotDecision(bot.strategy);
