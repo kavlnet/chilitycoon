@@ -69,6 +69,7 @@ let gameState = {
     timerInterval: null,
     resultsTimerInterval: null,
     lastBeepSecond: null,
+    lastResultsBeepSecond: null,
 };
 
 function connect() {
@@ -242,6 +243,55 @@ function calcDisplayWidth(level) {
     return Math.max(4, Math.min(100, width));
 }
 
+function escapeHtml(text) {
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function emphasizeFeedbackText(text) {
+    if (!text) return '';
+    const signalKeywords = [
+        'sets them apart', 'what really got me', 'the balance', 'depth', 'story',
+        'worth the price', 'bang for buck', 'didn\'t feel worth', 'overpriced',
+        'wait dragged', 'shockingly fast', 'not being stingy', 'smaller than expected',
+        'vibe', 'authentic', 'presentation', 'kick', 'seasoning', 'value', 'price'
+    ];
+    const normalized = text.toLowerCase();
+    let best = '';
+
+    // Prefer sentence-level highlighting to keep scanning fast.
+    const sentenceMatches = text.match(/[^.!?]+[.!?]?/g) || [text];
+    for (const sentence of sentenceMatches) {
+        const sentenceLower = sentence.toLowerCase();
+        if (signalKeywords.some((keyword) => sentenceLower.includes(keyword))) {
+            best = sentence.trim();
+            break;
+        }
+    }
+
+    if (!best) {
+        for (const keyword of signalKeywords) {
+            if (normalized.includes(keyword)) {
+                const idx = normalized.indexOf(keyword);
+                best = text.slice(idx, Math.min(text.length, idx + keyword.length + 40)).trim();
+                break;
+            }
+        }
+    }
+
+    if (!best) {
+        return escapeHtml(text);
+    }
+
+    const escapedText = escapeHtml(text);
+    const escapedBest = escapeHtml(best);
+    return escapedText.replace(escapedBest, `<span class="feedback-signal">${escapedBest}</span>`);
+}
+
 function renderBars() {
     elements.barsDisplay.innerHTML = gameState.attributes.map(attr => {
         const level = gameState.bars[attr] || 0;
@@ -312,6 +362,9 @@ function handleVoteUpdate(data) {
 
 function handleDecisionLocked(data) {
     highlightVote(data.choice);
+    if (window.gameAudio && typeof gameAudio.lockIn === 'function') {
+        gameAudio.lockIn();
+    }
 }
 
 function startTimer(duration) {
@@ -384,6 +437,7 @@ function clearResultsTimer() {
     if (elements.feedbackTimerText) {
         elements.feedbackTimerText.textContent = '--';
     }
+    gameState.lastResultsBeepSecond = null;
 }
 
 function startResultsTimer(duration) {
@@ -394,6 +448,7 @@ function startResultsTimer(duration) {
     if (gameState.resultsTimerInterval) {
         clearInterval(gameState.resultsTimerInterval);
     }
+    gameState.lastResultsBeepSecond = null;
 
     function updateResultsTimer() {
         const now = Date.now();
@@ -404,10 +459,23 @@ function startResultsTimer(duration) {
         elements.feedbackTimerText.textContent = `${Math.ceil(remaining)}s`;
 
         elements.feedbackTimerFill.classList.remove('urgent', 'critical');
+        const remainingInt = Math.ceil(remaining);
         if (remaining <= 5) {
             elements.feedbackTimerFill.classList.add('critical');
+            if (remainingInt !== gameState.lastResultsBeepSecond && remaining > 0) {
+                gameState.lastResultsBeepSecond = remainingInt;
+                if (window.gameAudio && typeof gameAudio.feedbackPulse === 'function') {
+                    gameAudio.feedbackPulse(true);
+                }
+            }
         } else if (remaining <= 10) {
             elements.feedbackTimerFill.classList.add('urgent');
+            if (remainingInt === 10 && gameState.lastResultsBeepSecond !== 10) {
+                gameState.lastResultsBeepSecond = 10;
+                if (window.gameAudio && typeof gameAudio.feedbackPulse === 'function') {
+                    gameAudio.feedbackPulse(false);
+                }
+            }
         }
 
         if (remaining <= 0) {
@@ -425,15 +493,18 @@ function handleRoundResults(data) {
     if (gameState.timerInterval) {
         clearInterval(gameState.timerInterval);
     }
+    if (window.gameAudio && typeof gameAudio.resultsReveal === 'function') {
+        gameAudio.resultsReveal();
+    }
     startResultsTimer(data.resultsDuration);
 
     const myResult = data.results[teamName];
 
     if (data.feedback) {
-        elements.feedbackContainer.innerHTML = data.feedback.map(item => `
-            <div class="feedback-item ${item.won ? 'won' : 'lost'}">
+        elements.feedbackContainer.innerHTML = data.feedback.map((item, idx) => `
+            <div class="feedback-item ${item.won ? 'won' : 'lost'}" style="--stagger: ${idx}">
                 <span class="feedback-outcome">${item.won ? 'WON' : 'LOST'}</span>
-                ${item.text}
+                ${emphasizeFeedbackText(item.text)}
             </div>
         `).join('');
     }
@@ -483,6 +554,12 @@ function handleRoundResults(data) {
 
     updateLeaderboard(data.leaderboard);
     showScreen('results-screen');
+    const resultsLayout = document.querySelector('.results-layout');
+    if (resultsLayout) {
+        resultsLayout.classList.remove('reveal');
+        void resultsLayout.offsetHeight;
+        resultsLayout.classList.add('reveal');
+    }
 }
 
 function formatJudgment(judgment) {
