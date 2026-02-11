@@ -11,9 +11,11 @@ const elements = {
     resetBtn: document.getElementById('reset-btn'),
     addBots: document.getElementById('add-bots'),
     applyConfig: document.getElementById('apply-config'),
+    applyPreset: document.getElementById('apply-preset'),
     roundDuration: document.getElementById('round-duration'),
     totalRounds: document.getElementById('total-rounds'),
     shiftRound: document.getElementById('shift-round'),
+    difficultyPreset: document.getElementById('difficulty-preset'),
     stateDisplay: document.getElementById('state-display'),
     leaderboard: document.getElementById('leaderboard'),
     createTeamBtn: document.getElementById('create-team-btn'),
@@ -76,6 +78,13 @@ if (elements.applyConfig) {
             paradigmShiftRound: Number(elements.shiftRound.value || 15),
         };
         hostAction('set_config', { config });
+    });
+}
+
+if (elements.applyPreset) {
+    elements.applyPreset.addEventListener('click', () => {
+        const difficulty = elements.difficultyPreset?.value || 'standard';
+        hostAction('set_preset', { difficulty });
     });
 }
 

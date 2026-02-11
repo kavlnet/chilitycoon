@@ -33,6 +33,7 @@ const elements = {
     yourBonus: document.getElementById('your-bonus'),
     resultBars: document.getElementById('result-bars'),
     finalLeaderboard: document.getElementById('final-leaderboard'),
+    soloSummary: document.getElementById('solo-summary'),
     resetBtn: document.getElementById('reset-btn'),
     paradigmOverlay: document.getElementById('paradigm-overlay'),
     paradigmMessage: document.getElementById('paradigm-message'),
@@ -603,7 +604,44 @@ function handleGameOver(data) {
             <span class="final-cash">$${entry.cash}</span>
         </div>
     `).join('');
+    renderSoloSummary(data.soloSummary || null);
     showScreen('gameover-screen');
+}
+
+function renderSoloSummary(summary) {
+    if (!elements.soloSummary) return;
+    if (!summary) {
+        elements.soloSummary.classList.add('hidden');
+        elements.soloSummary.innerHTML = '';
+        return;
+    }
+
+    const mutators = (summary.mutators || []).map((mutator) => `
+        <span class="solo-pill">${escapeHtml(mutator.name || mutator.key || 'Mutator')}</span>
+    `).join('');
+    const objectives = (summary.objectives || []).map((objective) => `
+        <div class="solo-objective ${objective.complete ? 'complete' : ''}">
+            <span class="solo-objective-title">${escapeHtml(objective.title)}</span>
+            <span class="solo-objective-progress">${objective.progress}/${objective.target}</span>
+        </div>
+    `).join('');
+
+    elements.soloSummary.innerHTML = `
+        <h3>Solo Run Summary</h3>
+        <div class="solo-summary-grid">
+            <div><strong>Difficulty:</strong> ${escapeHtml(summary.difficulty || 'standard')}</div>
+            <div><strong>Daily:</strong> ${summary.daily ? 'Yes' : 'No'}</div>
+            <div><strong>Grade:</strong> ${escapeHtml(summary.grade || 'D')}</div>
+            <div><strong>Score:</strong> ${summary.score || 0}</div>
+            <div><strong>Cash:</strong> $${summary.cash || 0}</div>
+            <div><strong>Wins:</strong> ${summary.stats?.wins || 0}</div>
+            <div><strong>Correct Reads:</strong> ${summary.stats?.correctReads || 0}</div>
+            <div><strong>Best Streak:</strong> ${summary.stats?.longestWinStreak || 0}</div>
+        </div>
+        ${mutators ? `<div class="solo-mutators"><strong>Mutators:</strong> ${mutators}</div>` : ''}
+        <div class="solo-objectives">${objectives}</div>
+    `;
+    elements.soloSummary.classList.remove('hidden');
 }
 
 function send(data) {

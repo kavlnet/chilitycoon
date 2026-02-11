@@ -45,7 +45,17 @@
                     <label for="shift-round">Paradigm Shift Round</label>
                     <input id="shift-round" type="number" min="3" max="40" value="15" />
                 </div>
+                <div class="form-group">
+                    <label for="difficulty-preset">Solo Difficulty Preset</label>
+                    <select id="difficulty-preset">
+                        <option value="chill">Chill</option>
+                        <option value="standard" selected>Standard</option>
+                        <option value="hard">Hard</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
                 <button id="apply-config" class="btn btn-primary">Apply Config</button>
+                <button id="apply-preset" class="btn btn-secondary">Apply Preset</button>
             </div>
 
             <div class="panel host-panel">

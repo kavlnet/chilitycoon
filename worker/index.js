@@ -27,13 +27,121 @@ const DEFAULT_CONFIG = {
   basePayout: 30,
   marginMultiplier: 1.2,
   newAttributeWeight: 0.25,
+  driftStrength: 0.2,
+  driftNoise: 0.01,
+  trendRoundsMin: 3,
+  trendRoundsMax: 5,
+  minAttributeWeight: 0.05,
+  maxAttributeWeight: 0.95,
 };
 
 const BOT_TEAMS = [
-  { name: "Speed Demons", strategy: "random_fast", delayRatio: [0.18, 0.45] },
-  { name: "Careful Readers", strategy: "smart", delayRatio: [0.35, 0.75] },
-  { name: "Chaos Crew", strategy: "random", delayRatio: [0.22, 0.65] },
+  { name: "Speed Demons", archetype: "sprinter", baseConfidence: 0.65, delayRatio: [0.16, 0.42] },
+  { name: "Careful Readers", archetype: "trend", baseConfidence: 0.72, delayRatio: [0.35, 0.75] },
+  { name: "Chaos Crew", archetype: "chaos", baseConfidence: 0.25, delayRatio: [0.22, 0.68] },
 ];
+
+const SOLO_PRESETS = {
+  chill: {
+    difficulty: "chill",
+    config: { roundDuration: 18, resultsDuration: 12, totalRounds: 12, paradigmShiftRound: 8 },
+    bots: [
+      { archetype: "trend", baseConfidence: 0.58, delayRatio: [0.35, 0.78] },
+      { archetype: "chaos", baseConfidence: 0.22, delayRatio: [0.25, 0.7] },
+    ],
+    objectives: { wins: 5, correctReads: 4, cash: 220, postShiftWins: 1 },
+    baseMutators: [],
+    adaptive: false,
+  },
+  standard: {
+    difficulty: "standard",
+    config: { roundDuration: 16, resultsDuration: 12, totalRounds: 14, paradigmShiftRound: 8 },
+    bots: [
+      { archetype: "trend", baseConfidence: 0.66, delayRatio: [0.28, 0.7] },
+      { archetype: "momentum", baseConfidence: 0.62, delayRatio: [0.25, 0.65] },
+      { archetype: "chaos", baseConfidence: 0.28, delayRatio: [0.2, 0.58] },
+    ],
+    objectives: { wins: 6, correctReads: 6, cash: 320, postShiftWins: 2 },
+    baseMutators: [],
+    adaptive: true,
+  },
+  hard: {
+    difficulty: "hard",
+    config: { roundDuration: 14, resultsDuration: 11, totalRounds: 16, paradigmShiftRound: 9 },
+    bots: [
+      { archetype: "trend", baseConfidence: 0.76, delayRatio: [0.22, 0.58] },
+      { archetype: "momentum", baseConfidence: 0.7, delayRatio: [0.2, 0.55] },
+      { archetype: "contrarian", baseConfidence: 0.6, delayRatio: [0.28, 0.62] },
+    ],
+    objectives: { wins: 8, correctReads: 8, cash: 430, postShiftWins: 2 },
+    baseMutators: ["tight_timer"],
+    adaptive: true,
+  },
+  expert: {
+    difficulty: "expert",
+    config: { roundDuration: 13, resultsDuration: 10, totalRounds: 18, paradigmShiftRound: 10 },
+    bots: [
+      { archetype: "trend", baseConfidence: 0.84, delayRatio: [0.16, 0.45] },
+      { archetype: "momentum", baseConfidence: 0.78, delayRatio: [0.18, 0.48] },
+      { archetype: "counter", baseConfidence: 0.7, delayRatio: [0.2, 0.52] },
+    ],
+    objectives: { wins: 10, correctReads: 10, cash: 560, postShiftWins: 3 },
+    baseMutators: ["tight_timer", "harsh_decay"],
+    adaptive: true,
+  },
+};
+
+const SOLO_MUTATOR_DEFS = {
+  tight_timer: {
+    key: "tight_timer",
+    name: "Tight Timer",
+    description: "-3s round timer",
+  },
+  harsh_decay: {
+    key: "harsh_decay",
+    name: "Harsh Decay",
+    description: "+2% bar depreciation",
+  },
+  turbulent_market: {
+    key: "turbulent_market",
+    name: "Turbulent Market",
+    description: "More volatile drift",
+  },
+  stingy_market: {
+    key: "stingy_market",
+    name: "Stingy Market",
+    description: "Lower margin payouts",
+  },
+  fast_shift: {
+    key: "fast_shift",
+    name: "Fast Shift",
+    description: "Paradigm shift arrives earlier",
+  },
+};
+
+const SOLO_BOT_NAMES = [
+  "Market Mantis",
+  "Signal Snake",
+  "Drift Fox",
+  "Tempo Wolf",
+  "Spread Raven",
+  "Pivot Shark",
+  "Edge Cobra",
+  "Regime Owl",
+];
+
+function hashSeed(input) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function getUTCDateKey() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 function jsonResponse(data, init = {}) {
   return new Response(JSON.stringify(data), {
@@ -503,14 +611,24 @@ export class GameRoomV2 {
       players: {},
       botsEnabled: false,
       bots: [],
+      mode: "standard",
+      soloRun: null,
+      rngState: null,
     };
   }
 
   restoreState(stored) {
     this.game = stored;
+    this.game.mode = this.game.mode || "standard";
+    this.game.soloRun = this.game.soloRun || null;
+    this.game.rngState = this.game.rngState ?? null;
+    this.game.market = this.game.market || {};
+    this.game.market.standardHistory = this.game.market.standardHistory || [];
+    this.game.config = { ...DEFAULT_CONFIG, ...(this.game.config || {}) };
     for (const team of Object.values(this.game.teams)) {
       team.players = new Set(team.players || []);
       team.votes = team.votes || {};
+      team.feedbackRecent = team.feedbackRecent || [];
     }
   }
 
@@ -606,6 +724,16 @@ export class GameRoomV2 {
       type: "teams_updated",
       leaderboard: this.getLeaderboard(),
     });
+
+    if (
+      !isSpectator
+      && this.game.mode === "solo"
+      && this.game.phase === "waiting"
+      && this.game.soloRun
+      && normalizeTeamKey(teamName) === normalizeTeamKey(this.game.soloRun.playerTeam)
+    ) {
+      this.startGame().catch(() => {});
+    }
 
     server.addEventListener("message", (event) => {
       try {
@@ -738,6 +866,15 @@ export class GameRoomV2 {
       attributes: this.game.market.attributes,
       leaderboard: this.getLeaderboard(),
       paradigmShifted: this.game.paradigmShifted,
+      mode: this.game.mode,
+      solo: this.game.soloRun
+        ? {
+            difficulty: this.game.soloRun.difficulty,
+            daily: this.game.soloRun.daily,
+            dateKey: this.game.soloRun.dateKey,
+            mutators: this.game.soloRun.mutators,
+          }
+        : null,
     };
   }
 
@@ -812,6 +949,14 @@ export class GameRoomV2 {
       case "set_config":
         this.updateConfig(payload.config || {});
         break;
+      case "set_preset":
+        if (payload.difficulty) {
+          this.applyDifficultyPreset(payload.difficulty);
+        }
+        break;
+      case "setup_solo":
+        await this.setupSoloRun(payload);
+        break;
       case "create_team":
         if (payload.teamName) {
           const result = this.createTeamIfNotExists(payload.teamName);
@@ -835,6 +980,348 @@ export class GameRoomV2 {
         this.game.config[key] = Number(config[key]);
       }
     }
+  }
+
+  rand() {
+    if (this.game?.rngState == null) {
+      return Math.random();
+    }
+    this.game.rngState = (this.game.rngState + 0x6d2b79f5) >>> 0;
+    let t = this.game.rngState;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  randInt(max) {
+    if (max <= 0) return 0;
+    return Math.floor(this.rand() * max);
+  }
+
+  nextTrendRounds() {
+    const min = Math.max(1, Number(this.game.config.trendRoundsMin || 3));
+    const max = Math.max(min, Number(this.game.config.trendRoundsMax || 5));
+    return min + this.randInt(max - min + 1);
+  }
+
+  pickTrendTargetWithRand(attributes) {
+    const raw = {};
+    let total = 0;
+    for (const attr of attributes) {
+      const val = this.rand() + 0.1;
+      raw[attr] = val;
+      total += val;
+    }
+    const target = {};
+    for (const attr of attributes) {
+      target[attr] = raw[attr] / total;
+    }
+    return target;
+  }
+
+  applyDifficultyPreset(difficulty) {
+    const preset = SOLO_PRESETS[difficulty] || SOLO_PRESETS.standard;
+    this.game.config = {
+      ...this.game.config,
+      ...preset.config,
+    };
+  }
+
+  createSoloObjectives(targets) {
+    return [
+      {
+        id: "wins",
+        title: `Win ${targets.wins} rounds`,
+        metric: "wins",
+        target: targets.wins,
+        reward: 140,
+      },
+      {
+        id: "reads",
+        title: `Make ${targets.correctReads} correct reads`,
+        metric: "correctReads",
+        target: targets.correctReads,
+        reward: 170,
+      },
+      {
+        id: "cash",
+        title: `Finish with $${targets.cash}+`,
+        metric: "cash",
+        target: targets.cash,
+        reward: 220,
+      },
+      {
+        id: "shift",
+        title: `Win ${targets.postShiftWins} of first 3 post-shift rounds`,
+        metric: "postShiftWins",
+        target: targets.postShiftWins,
+        reward: 180,
+      },
+    ].map((objective) => ({
+      ...objective,
+      progress: 0,
+      complete: false,
+    }));
+  }
+
+  applySoloMutator(mutatorKey) {
+    switch (mutatorKey) {
+      case "tight_timer":
+        this.game.config.roundDuration = Math.max(10, this.game.config.roundDuration - 3);
+        break;
+      case "harsh_decay":
+        this.game.config.barDepreciation = clamp(this.game.config.barDepreciation + 0.02, 0.01, 0.35);
+        break;
+      case "turbulent_market":
+        this.game.config.driftStrength = clamp(this.game.config.driftStrength + 0.08, 0.05, 0.5);
+        this.game.config.driftNoise = clamp(this.game.config.driftNoise + 0.012, 0.001, 0.08);
+        this.game.config.trendRoundsMin = Math.max(2, this.game.config.trendRoundsMin - 1);
+        this.game.config.trendRoundsMax = Math.max(
+          this.game.config.trendRoundsMin + 1,
+          this.game.config.trendRoundsMax - 1
+        );
+        break;
+      case "stingy_market":
+        this.game.config.marginMultiplier = clamp(this.game.config.marginMultiplier - 0.25, 0.8, 2.0);
+        this.game.config.basePayout = Math.max(10, this.game.config.basePayout - 6);
+        break;
+      case "fast_shift":
+        this.game.config.paradigmShiftRound = Math.max(5, this.game.config.paradigmShiftRound - 2);
+        break;
+      default:
+        break;
+    }
+  }
+
+  buildSoloBots(presetBots) {
+    const availableNames = [...SOLO_BOT_NAMES];
+    return presetBots.map((bot, idx) => {
+      const poolIndex = this.randInt(availableNames.length);
+      const pickedName = availableNames.splice(poolIndex, 1)[0] || `Bot ${idx + 1}`;
+      return {
+        name: pickedName,
+        archetype: bot.archetype,
+        baseConfidence: bot.baseConfidence,
+        delayRatio: bot.delayRatio,
+      };
+    });
+  }
+
+  getObjectiveMetricValue(metric, stats, cash) {
+    if (metric === "wins") return stats.wins;
+    if (metric === "correctReads") return stats.correctReads;
+    if (metric === "cash") return cash;
+    if (metric === "postShiftWins") return stats.postShiftWins;
+    return 0;
+  }
+
+  updateSoloProgress(results) {
+    if (this.game.mode !== "solo" || !this.game.soloRun) return;
+    const playerTeam = resolveTeamName(this.game.soloRun.playerTeam, this.game.teams);
+    const playerResult = results[playerTeam];
+    if (!playerResult) return;
+
+    const stats = this.game.soloRun.stats;
+    if (playerResult.won) {
+      stats.wins += 1;
+      stats.currentWinStreak += 1;
+      stats.longestWinStreak = Math.max(stats.longestWinStreak, stats.currentWinStreak);
+    } else {
+      stats.losses += 1;
+      stats.currentWinStreak = 0;
+    }
+
+    if (playerResult.judgment === "correct") stats.correctReads += 1;
+    if (playerResult.judgment === "near") stats.nearReads += 1;
+    if (playerResult.judgment === "miss") stats.missReads += 1;
+    stats.totalPayout += playerResult.payout || 0;
+    stats.roundsPlayed += 1;
+
+    const shiftRound = this.game.config.paradigmShiftRound;
+    if (this.game.round >= shiftRound && this.game.round < shiftRound + 3) {
+      stats.postShiftRounds += 1;
+      if (playerResult.won) stats.postShiftWins += 1;
+    }
+
+    const sample =
+      (playerResult.won ? 1 : 0)
+      + (playerResult.judgment === "correct" ? 1 : playerResult.judgment === "near" ? 0.3 : -0.45)
+      - (playerResult.speedTier === "fallback" ? 0.35 : 0);
+    const window = this.game.soloRun.performanceWindow || [];
+    window.push(sample);
+    this.game.soloRun.performanceWindow = window.slice(-5);
+
+    if (this.game.soloRun.adaptive) {
+      const avg = this.game.soloRun.performanceWindow.reduce((sum, v) => sum + v, 0)
+        / this.game.soloRun.performanceWindow.length;
+      if (avg > 1.05) {
+        this.game.soloRun.adaptLevel = clamp((this.game.soloRun.adaptLevel || 0) + 0.25, -2, 2);
+      } else if (avg < 0.15) {
+        this.game.soloRun.adaptLevel = clamp((this.game.soloRun.adaptLevel || 0) - 0.2, -2, 2);
+      }
+    }
+
+    const cash = this.game.teams[playerTeam]?.cash || 0;
+    this.game.soloRun.objectives = this.game.soloRun.objectives.map((objective) => {
+      const progress = this.getObjectiveMetricValue(objective.metric, stats, cash);
+      return {
+        ...objective,
+        progress,
+        complete: progress >= objective.target,
+      };
+    });
+  }
+
+  buildSoloSummary() {
+    if (this.game.mode !== "solo" || !this.game.soloRun) return null;
+    const playerTeam = resolveTeamName(this.game.soloRun.playerTeam, this.game.teams);
+    const cash = this.game.teams[playerTeam]?.cash || 0;
+    const stats = this.game.soloRun.stats;
+    const objectives = this.game.soloRun.objectives || [];
+    const objectiveScore = objectives
+      .filter((objective) => objective.complete)
+      .reduce((sum, objective) => sum + objective.reward, 0);
+    const baseScore = Math.round(
+      cash
+      + stats.wins * 22
+      + stats.correctReads * 20
+      + stats.longestWinStreak * 14
+      + objectiveScore
+      + (this.game.soloRun.daily ? 120 : 0)
+    );
+    const grade = baseScore >= 1200
+      ? "S"
+      : baseScore >= 900
+        ? "A"
+        : baseScore >= 700
+          ? "B"
+          : baseScore >= 500
+            ? "C"
+            : "D";
+
+    return {
+      team: playerTeam,
+      difficulty: this.game.soloRun.difficulty,
+      daily: this.game.soloRun.daily,
+      dateKey: this.game.soloRun.dateKey,
+      seed: this.game.soloRun.seed,
+      grade,
+      score: baseScore,
+      mutators: this.game.soloRun.mutators,
+      objectives,
+      stats,
+      cash,
+    };
+  }
+
+  async setupSoloRun(payload = {}) {
+    this.clearBotTimeouts();
+    await this.state.storage.deleteAlarm();
+
+    const rawDifficulty = String(payload.difficulty || "standard").toLowerCase();
+    const difficulty = SOLO_PRESETS[rawDifficulty] ? rawDifficulty : "standard";
+    const preset = SOLO_PRESETS[difficulty];
+    const teamName = String(payload.playerTeam || "Solo Trader").trim() || "Solo Trader";
+    const daily = Boolean(payload.daily);
+    const dateKey = daily ? getUTCDateKey() : null;
+    const seed = payload.seed
+      ? String(payload.seed)
+      : daily
+        ? `daily:${dateKey}:${difficulty}`
+        : `solo:${difficulty}:${randomId(8)}`;
+
+    this.game.mode = "solo";
+    this.game.rngState = hashSeed(seed);
+    this.game.config = {
+      ...DEFAULT_CONFIG,
+      ...preset.config,
+    };
+
+    const mutatorKeys = [...(preset.baseMutators || [])];
+    if (daily) {
+      const pool = Object.keys(SOLO_MUTATOR_DEFS).filter((key) => !mutatorKeys.includes(key));
+      const dailyCount = Math.min(2, pool.length);
+      for (let i = 0; i < dailyCount; i++) {
+        const idx = this.randInt(pool.length);
+        const picked = pool.splice(idx, 1)[0];
+        if (picked) mutatorKeys.push(picked);
+      }
+    }
+    for (const mutatorKey of mutatorKeys) {
+      this.applySoloMutator(mutatorKey);
+    }
+
+    this.game.phase = "waiting";
+    this.game.round = 0;
+    this.game.roundStart = null;
+    this.game.roundEndAt = null;
+    this.game.resultsEndAt = null;
+    this.game.paradigmShifted = false;
+    this.game.paradigmAttribute = null;
+    this.game.paradigmWarningSent = false;
+    this.game.feedbackBiasRounds = 0;
+    this.game.mode = "standard";
+    this.game.soloRun = null;
+    this.game.rngState = null;
+
+    this.game.market.attributes = [...BASE_ATTRIBUTES];
+    this.game.market.weights = normalizeWeights(
+      BASE_ATTRIBUTES.reduce((acc, attr) => {
+        acc[attr] = this.rand() + 0.1;
+        return acc;
+      }, {})
+    );
+    this.game.market.trendTarget = this.pickTrendTargetWithRand(BASE_ATTRIBUTES);
+    this.game.market.trendRoundsLeft = this.nextTrendRounds();
+    this.game.market.standardHistory = [];
+
+    this.game.soloRun = {
+      enabled: true,
+      difficulty,
+      adaptive: Boolean(preset.adaptive),
+      daily,
+      dateKey,
+      seed,
+      playerTeam: teamName,
+      mutators: mutatorKeys.map((key) => SOLO_MUTATOR_DEFS[key]).filter(Boolean),
+      objectives: this.createSoloObjectives(preset.objectives),
+      stats: {
+        roundsPlayed: 0,
+        wins: 0,
+        losses: 0,
+        correctReads: 0,
+        nearReads: 0,
+        missReads: 0,
+        totalPayout: 0,
+        currentWinStreak: 0,
+        longestWinStreak: 0,
+        postShiftRounds: 0,
+        postShiftWins: 0,
+      },
+      performanceWindow: [],
+      adaptLevel: 0,
+    };
+
+    this.game.botsEnabled = true;
+    this.game.bots = this.buildSoloBots(preset.bots);
+
+    this.game.teams = {};
+    this.game.players = {};
+    const playerTeam = this.createTeam(teamName);
+    playerTeam.isBot = false;
+    this.game.teams[teamName] = playerTeam;
+
+    for (const bot of this.game.bots) {
+      const team = this.createTeam(bot.name);
+      team.isBot = true;
+      team.players.add(`bot_${bot.name}`);
+      this.game.teams[bot.name] = team;
+    }
+
+    this.broadcast({
+      type: "teams_updated",
+      leaderboard: this.getLeaderboard(),
+    });
   }
 
   async resetGame() {
@@ -881,6 +1368,14 @@ export class GameRoomV2 {
 
   async startGame() {
     if (this.game.phase === "round" || this.game.phase === "results") return;
+
+    if (this.game.mode === "solo" && this.game.soloRun) {
+      const playerTeamName = resolveTeamName(this.game.soloRun.playerTeam, this.game.teams);
+      const playerTeam = this.game.teams[playerTeamName];
+      if (!playerTeam || (playerTeam.players?.size || 0) === 0) {
+        return;
+      }
+    }
 
     if (this.game.round === 0) {
       this.game.round = 1;
@@ -931,6 +1426,13 @@ export class GameRoomV2 {
           "Hint: Speed amplifies judgment (fast correct picks build more).",
         ]
       : [];
+    if (this.game.mode === "solo" && this.game.soloRun) {
+      const objectiveHint = this.game.soloRun.objectives
+        .filter((objective) => !objective.complete)
+        .slice(0, 1)
+        .map((objective) => `Solo Objective: ${objective.title}`)[0];
+      if (objectiveHint) hints.push(objectiveHint);
+    }
 
     for (const [playerId, socketInfo] of this.sockets.entries()) {
       const team = this.game.teams[socketInfo.team];
@@ -1120,13 +1622,13 @@ export class GameRoomV2 {
             if (team.lastDecision && tied.includes(team.lastDecision)) {
               decision = team.lastDecision;
             } else {
-              decision = tied[Math.floor(Math.random() * tied.length)];
+              decision = tied[this.randInt(tied.length)];
             }
           }
         } else {
           usedFallback = true;
           decision = team.lastDecision
-            || this.game.market.attributes[Math.floor(Math.random() * this.game.market.attributes.length)];
+            || this.game.market.attributes[this.randInt(this.game.market.attributes.length)];
         }
       }
 
@@ -1176,6 +1678,8 @@ export class GameRoomV2 {
       feedback[team.name] = this.generateFeedbackItems(won, team.name);
     }
 
+    this.updateSoloProgress(results);
+
     const debug = {
       weights: Object.fromEntries(Object.entries(weights).map(([k, v]) => [k, `${Math.round(v * 100)}%`])),
       hotAttribute,
@@ -1197,6 +1701,7 @@ export class GameRoomV2 {
         debug,
         judgment: socketInfo.role === "player" ? results[teamName]?.judgment : null,
         speedTier: socketInfo.role === "player" ? results[teamName]?.speedTier : null,
+        soloProgress: socketInfo.role === "player" && this.game.mode === "solo" ? this.game.soloRun : null,
       });
     }
 
@@ -1280,9 +1785,11 @@ export class GameRoomV2 {
 
     if (this.game.round > this.game.config.totalRounds) {
       this.game.phase = "waiting";
+      const soloSummary = this.buildSoloSummary();
       this.broadcast({
         type: "game_over",
         leaderboard: this.getLeaderboard(),
+        soloSummary,
       });
       await this.persistState();
       return;
@@ -1304,20 +1811,33 @@ export class GameRoomV2 {
   applyDrift() {
     const weights = { ...this.game.market.weights };
     const target = this.game.market.trendTarget;
+    const adaptLevel = this.game.mode === "solo" && this.game.soloRun
+      ? (this.game.soloRun.adaptLevel || 0)
+      : 0;
+    const driftStrength = clamp(
+      this.game.config.driftStrength + adaptLevel * 0.015,
+      0.05,
+      0.5
+    );
+    const driftNoise = clamp(
+      this.game.config.driftNoise + adaptLevel * 0.004,
+      0.001,
+      0.08
+    );
 
     for (const attr of this.game.market.attributes) {
-      const current = weights[attr] || 0.05;
+      const current = weights[attr] || this.game.config.minAttributeWeight;
       const toward = target[attr] ?? (1 / this.game.market.attributes.length);
-      const nudged = current + (toward - current) * 0.2 + (Math.random() * 0.02 - 0.01);
-      weights[attr] = clamp(nudged, 0.05, 0.95);
+      const nudged = current + (toward - current) * driftStrength + (this.rand() * driftNoise * 2 - driftNoise);
+      weights[attr] = clamp(nudged, this.game.config.minAttributeWeight, this.game.config.maxAttributeWeight);
     }
 
     this.game.market.weights = normalizeWeights(weights);
     this.game.market.trendRoundsLeft -= 1;
 
     if (this.game.market.trendRoundsLeft <= 0) {
-      this.game.market.trendTarget = pickTrendTarget(this.game.market.attributes);
-      this.game.market.trendRoundsLeft = 3 + Math.floor(Math.random() * 3);
+      this.game.market.trendTarget = this.pickTrendTargetWithRand(this.game.market.attributes);
+      this.game.market.trendRoundsLeft = this.nextTrendRounds();
     }
   }
 
@@ -1327,7 +1847,7 @@ export class GameRoomV2 {
       (attr) => !this.game.market.attributes.includes(attr)
     );
     const newAttr = available.length
-      ? available[Math.floor(Math.random() * available.length)]
+      ? available[this.randInt(available.length)]
       : `factor_${randomId(4).toLowerCase()}`;
 
     this.game.paradigmAttribute = newAttr;
@@ -1335,8 +1855,8 @@ export class GameRoomV2 {
 
     this.game.market.weights[newAttr] = this.game.config.newAttributeWeight;
     this.game.market.weights = normalizeWeights(this.game.market.weights);
-    this.game.market.trendTarget = pickTrendTarget(this.game.market.attributes);
-    this.game.market.trendRoundsLeft = 3 + Math.floor(Math.random() * 3);
+    this.game.market.trendTarget = this.pickTrendTargetWithRand(this.game.market.attributes);
+    this.game.market.trendRoundsLeft = this.nextTrendRounds();
     // Reset standard history so threshold re-calibrates in the new regime.
     this.game.market.standardHistory = [];
 
@@ -1365,17 +1885,21 @@ export class GameRoomV2 {
 
   scheduleBotVotes() {
     this.clearBotTimeouts();
+    const adaptLevel = this.game.mode === "solo" && this.game.soloRun
+      ? (this.game.soloRun.adaptLevel || 0)
+      : 0;
 
     for (const bot of this.game.bots) {
       if (!this.game.teams[bot.name]) continue;
       const durationMs = this.game.config.roundDuration * 1000;
       const delayRatio = bot.delayRatio || [0.2, 0.8];
-      const minDelayMs = Math.max(400, Math.floor(durationMs * delayRatio[0]));
-      const maxDelayMs = Math.max(minDelayMs + 250, Math.floor(durationMs * delayRatio[1]));
-      const delayMs = minDelayMs + Math.random() * (maxDelayMs - minDelayMs);
+      const speedFactor = clamp(1 - adaptLevel * 0.07, 0.65, 1.25);
+      const minDelayMs = Math.max(350, Math.floor(durationMs * delayRatio[0] * speedFactor));
+      const maxDelayMs = Math.max(minDelayMs + 220, Math.floor(durationMs * delayRatio[1] * speedFactor));
+      const delayMs = minDelayMs + this.rand() * (maxDelayMs - minDelayMs);
 
       const timeout = setTimeout(() => {
-        const choice = this.getBotDecision(bot.strategy);
+        const choice = this.getBotDecision(bot);
         this.submitBotVote(bot.name, choice).catch(() => {});
       }, delayMs);
 
@@ -1390,15 +1914,40 @@ export class GameRoomV2 {
     this.botTimeouts.clear();
   }
 
-  getBotDecision(strategy) {
+  getBotDecision(bot) {
     const attrs = this.game.market.attributes;
-    const hot = getHotAttribute(this.game.market.weights);
+    const sorted = [...attrs].sort((a, b) => (this.game.market.weights[b] || 0) - (this.game.market.weights[a] || 0));
+    const top = sorted[0] || attrs[0];
+    const second = sorted[1] || top;
+    const low = sorted[sorted.length - 1] || top;
+    const archetype = bot.archetype
+      || (bot.strategy === "smart" ? "trend" : bot.strategy === "random_fast" ? "sprinter" : "chaos");
+    const adaptLevel = this.game.mode === "solo" && this.game.soloRun
+      ? (this.game.soloRun.adaptLevel || 0)
+      : 0;
+    const confidence = clamp((bot.baseConfidence ?? 0.6) + adaptLevel * 0.08, 0.2, 0.95);
+    const randomAttr = attrs[this.randInt(attrs.length)] || top;
 
-    if (strategy === "smart") {
-      return Math.random() < 0.7 ? hot : attrs[Math.floor(Math.random() * attrs.length)];
+    switch (archetype) {
+      case "trend":
+        return this.rand() < confidence ? top : randomAttr;
+      case "sprinter":
+        return this.rand() < confidence + 0.05 ? top : second;
+      case "momentum": {
+        const team = this.game.teams[bot.name];
+        if (team?.lastDecision && attrs.includes(team.lastDecision) && this.rand() < 0.55) {
+          return team.lastDecision;
+        }
+        return this.rand() < confidence ? top : second;
+      }
+      case "contrarian":
+        return this.rand() < 0.55 ? low : (this.rand() < confidence ? top : randomAttr);
+      case "counter":
+        return this.rand() < 0.65 ? second : (this.rand() < confidence ? top : low);
+      case "chaos":
+      default:
+        return randomAttr;
     }
-
-    return attrs[Math.floor(Math.random() * attrs.length)];
   }
 
   async submitBotVote(teamName, choice) {
@@ -1447,6 +1996,43 @@ export class GameRoomV2 {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname === "/api/room/solo" && request.method === "POST") {
+      const payload = await request.json().catch(() => ({}));
+      const difficulty = String(payload?.difficulty || "standard").toLowerCase();
+      const daily = Boolean(payload?.daily);
+      const playerTeam = String(payload?.playerTeam || "Solo Trader").trim() || "Solo Trader";
+      const roomId = randomId(6);
+      const hostKey = randomId(10);
+      const id = env.GAME_ROOM_V2.idFromName(roomId);
+      const stub = env.GAME_ROOM_V2.get(id);
+
+      await stub.fetch(new Request(`https://game/api/room/${roomId}/initialize`, {
+        method: "POST",
+        body: JSON.stringify({ hostKey }),
+      }));
+
+      await stub.fetch(new Request(`https://game/api/room/${roomId}/host`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "setup_solo",
+          hostKey,
+          difficulty,
+          daily,
+          playerTeam,
+        }),
+      }));
+
+      return jsonResponse({
+        roomId,
+        hostKey,
+        difficulty,
+        daily,
+        playerTeam,
+        dateKey: daily ? getUTCDateKey() : null,
+      });
+    }
 
     if (url.pathname === "/api/room" && request.method === "POST") {
       const roomId = randomId(6);

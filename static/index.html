@@ -56,6 +56,25 @@
                 <button id="spectate-btn" class="btn btn-secondary">Spectate</button>
             </div>
 
+            <div class="join-form solo-form">
+                <h2>Solo Run</h2>
+                <p class="hint">Instant run vs AI teams with objectives and a run score.</p>
+                <div class="form-group">
+                    <label for="solo-difficulty">Difficulty</label>
+                    <select id="solo-difficulty">
+                        <option value="chill">Chill</option>
+                        <option value="standard" selected>Standard</option>
+                        <option value="hard">Hard</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+                <label class="solo-toggle">
+                    <input type="checkbox" id="solo-daily">
+                    Daily Challenge (seeded market + mutators)
+                </label>
+                <button id="solo-start-btn" class="btn btn-primary">Start Solo Run</button>
+            </div>
+
             <div class="teams-list">
                 <h3>Current Teams</h3>
                 <div id="teams-container">
@@ -88,6 +107,9 @@
         const nameInput = document.getElementById('player-name');
         const joinBtn = document.getElementById('join-btn');
         const spectateBtn = document.getElementById('spectate-btn');
+        const soloStartBtn = document.getElementById('solo-start-btn');
+        const soloDifficultyInput = document.getElementById('solo-difficulty');
+        const soloDailyInput = document.getElementById('solo-daily');
         const teamsContainer = document.getElementById('teams-container');
         const teamStatus = document.getElementById('team-status');
         const teamOptions = document.getElementById('team-options');
@@ -251,6 +273,49 @@
             }
             window.location.href = `/spectate.html?room=${encodeURIComponent(roomId)}`;
         });
+
+        if (soloStartBtn) {
+            soloStartBtn.addEventListener('click', async () => {
+                const playerName = nameInput.value.trim();
+                if (!playerName) {
+                    alert('Enter your name before starting a solo run.');
+                    return;
+                }
+                const desiredTeamName = (teamInput.value.trim() || `${playerName} Solo`).slice(0, 20);
+                const payload = {
+                    difficulty: soloDifficultyInput?.value || 'standard',
+                    daily: Boolean(soloDailyInput?.checked),
+                    playerTeam: desiredTeamName,
+                };
+
+                soloStartBtn.disabled = true;
+                soloStartBtn.textContent = 'Creating Run...';
+                try {
+                    const response = await fetch('/api/room/solo', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    if (!response.ok) throw new Error('Failed solo setup');
+                    const data = await response.json();
+                    const teamName = data.playerTeam || desiredTeamName;
+                    const playerId = getOrCreatePlayerId(data.roomId, teamName, playerName);
+
+                    setStored('chili_roomId', data.roomId);
+                    setStored('chili_hostKey', data.hostKey);
+                    setStored('chili_teamName', teamName);
+                    setStored('chili_playerName', playerName);
+                    setStored('chili_playerId', playerId);
+
+                    window.location.href = `/game.html?room=${encodeURIComponent(data.roomId)}`;
+                } catch (err) {
+                    alert('Failed to start solo run.');
+                } finally {
+                    soloStartBtn.disabled = false;
+                    soloStartBtn.textContent = 'Start Solo Run';
+                }
+            });
+        }
 
         roomInput.addEventListener('input', () => {
             loadTeams(roomInput.value.trim());
