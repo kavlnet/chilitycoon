@@ -21,44 +21,76 @@
             <p class="tagline">Read the market. Build your empire.</p>
         </header>
 
-        <main class="join-screen">
-            <div class="join-form">
-                <h2>Create a Room</h2>
-                <p class="hint">Host controls start/pause/reset and can add bots.</p>
-                <button id="create-room-btn" class="btn btn-primary">Create Room</button>
-                <div id="room-created" class="room-created hidden">
-                    <div class="room-code">Room Code: <span id="room-code"></span></div>
-                    <div class="room-actions">
-                        <a id="host-link" class="btn btn-secondary" href="#">Open Host Dashboard</a>
-                        <button id="copy-room-btn" class="btn btn-primary">Copy Room Link</button>
-                    </div>
-                    <p class="hint">Share the room code or link with players.</p>
-                </div>
-            </div>
-
-            <div class="join-form">
-                <h2>Join a Room</h2>
+        <main class="start-flow">
+            <section class="join-form identity-form">
+                <h2>1. Your Identity</h2>
+                <p class="hint">Player name is shared across Multiplayer and Solo.</p>
                 <div class="form-group">
-                    <label for="room-id">Room Code</label>
-                    <input type="text" id="room-id" placeholder="Enter room code" maxlength="10">
-                </div>
-                <div class="form-group">
-                    <label for="team-name">Team Name</label>
-                    <input type="text" id="team-name" placeholder="Enter team name" maxlength="20" list="team-options">
-                    <datalist id="team-options"></datalist>
-                    <div id="team-status" class="team-status">Select a team below or type a new name.</div>
-                </div>
-                <div class="form-group">
-                    <label for="player-name">Your Name</label>
+                    <label for="player-name">Player Name</label>
                     <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
                 </div>
-                <button id="join-btn" class="btn btn-primary">Join Game</button>
-                <button id="spectate-btn" class="btn btn-secondary">Spectate</button>
-            </div>
+            </section>
 
-            <div class="join-form solo-form">
-                <h2>Solo Run</h2>
-                <p class="hint">Instant run vs AI teams with objectives and a run score.</p>
+            <section class="join-form mode-picker">
+                <h2>2. Select Mode</h2>
+                <div class="mode-tabs">
+                    <button id="mode-multiplayer-btn" class="btn btn-secondary mode-tab active" type="button">Multiplayer</button>
+                    <button id="mode-solo-btn" class="btn btn-secondary mode-tab" type="button">Solo Run</button>
+                </div>
+                <p id="mode-subtitle" class="hint mode-subtitle">Join friends in a shared room or host your own lobby.</p>
+            </section>
+
+            <section id="multiplayer-panel" class="join-form mode-panel">
+                <h2>3A. Multiplayer Lobby</h2>
+                <div class="mode-columns">
+                    <div class="mode-subcard">
+                        <h3>Create Room</h3>
+                        <p class="hint">Host controls start/pause/reset and can add bots.</p>
+                        <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+                        <div id="room-created" class="room-created hidden">
+                            <div class="room-code">Room Code: <span id="room-code"></span></div>
+                            <div class="room-actions">
+                                <a id="host-link" class="btn btn-secondary" href="#">Open Host Dashboard</a>
+                                <button id="copy-room-btn" class="btn btn-primary">Copy Room Link</button>
+                            </div>
+                            <p class="hint">Share the room code or link with players.</p>
+                        </div>
+                    </div>
+
+                    <div class="mode-subcard">
+                        <h3>Join Room</h3>
+                        <div class="form-group">
+                            <label for="room-id">Room Code</label>
+                            <input type="text" id="room-id" placeholder="Enter room code" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="team-name">Team Name</label>
+                            <input type="text" id="team-name" placeholder="Enter team name" maxlength="20" list="team-options">
+                            <datalist id="team-options"></datalist>
+                            <div id="team-status" class="team-status">Enter a room code, then pick or create a team.</div>
+                        </div>
+                        <div class="mode-actions">
+                            <button id="join-btn" class="btn btn-primary" type="button">Join Game</button>
+                            <button id="spectate-btn" class="btn btn-secondary" type="button">Spectate</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="teams-list">
+                    <h3>Current Teams</h3>
+                    <div id="teams-container">
+                        <p class="empty-state">Enter a room code to see teams.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="solo-panel" class="join-form solo-form mode-panel hidden">
+                <h2>3B. Solo Setup</h2>
+                <p class="hint">No host required. Solo run starts automatically after you connect.</p>
+                <div class="form-group">
+                    <label for="solo-team-name">Solo Team Banner (optional)</label>
+                    <input type="text" id="solo-team-name" placeholder="Auto: your name + Solo" maxlength="20">
+                </div>
                 <div class="form-group">
                     <label for="solo-difficulty">Difficulty</label>
                     <select id="solo-difficulty">
@@ -72,17 +104,10 @@
                     <input type="checkbox" id="solo-daily">
                     Daily Challenge (seeded market + mutators)
                 </label>
-                <button id="solo-start-btn" class="btn btn-primary">Start Solo Run</button>
-            </div>
+                <button id="solo-start-btn" class="btn btn-primary" type="button">Start Solo Run</button>
+            </section>
 
-            <div class="teams-list">
-                <h3>Current Teams</h3>
-                <div id="teams-container">
-                    <p class="empty-state">No teams yet. Create a room!</p>
-                </div>
-            </div>
-
-            <div class="rules">
+            <section class="rules">
                 <h3>How to Play</h3>
                 <ul>
                     <li><strong>Vote as a team</strong> - Majority locks in your attribute choice</li>
@@ -97,14 +122,31 @@
                     <li>Bars depreciate each round - keep investing</li>
                     <li>Paradigm shift adds a new attribute mid-game</li>
                 </ul>
-            </div>
+            </section>
         </main>
     </div>
 
     <script>
+        const STORAGE = {
+            roomId: 'chili_roomId',
+            hostKey: 'chili_hostKey',
+            playerName: 'chili_playerName',
+            playerId: 'chili_playerId',
+            activeTeam: 'chili_teamName',
+            multiplayerTeam: 'chili_teamName_multi',
+            soloTeam: 'chili_teamName_solo',
+            lastMode: 'chili_mode_last',
+        };
+
         const roomInput = document.getElementById('room-id');
         const teamInput = document.getElementById('team-name');
+        const soloTeamInput = document.getElementById('solo-team-name');
         const nameInput = document.getElementById('player-name');
+        const modeMultiplayerBtn = document.getElementById('mode-multiplayer-btn');
+        const modeSoloBtn = document.getElementById('mode-solo-btn');
+        const modeSubtitle = document.getElementById('mode-subtitle');
+        const multiplayerPanel = document.getElementById('multiplayer-panel');
+        const soloPanel = document.getElementById('solo-panel');
         const joinBtn = document.getElementById('join-btn');
         const spectateBtn = document.getElementById('spectate-btn');
         const soloStartBtn = document.getElementById('solo-start-btn');
@@ -118,6 +160,8 @@
         const roomCodeEl = document.getElementById('room-code');
         const hostLink = document.getElementById('host-link');
         const copyRoomBtn = document.getElementById('copy-room-btn');
+
+        let activeMode = 'multiplayer';
         let currentTeams = [];
 
         function setStored(key, value) {
@@ -128,14 +172,14 @@
             return localStorage.getItem(key);
         }
 
-        function getOrCreatePlayerId(roomId, teamName, playerName) {
-            const existing = getStored('chili_playerId');
-            const existingRoom = getStored('chili_roomId');
+        function getOrCreatePlayerId(roomId) {
+            const existing = getStored(STORAGE.playerId);
+            const existingRoom = getStored(STORAGE.roomId);
             if (existing && existingRoom === roomId) {
                 return existing;
             }
             const id = 'p_' + Math.random().toString(36).slice(2, 10);
-            setStored('chili_playerId', id);
+            setStored(STORAGE.playerId, id);
             return id;
         }
 
@@ -149,10 +193,50 @@
             return currentTeams.find(team => normalizeTeamName(team) === normalized) || null;
         }
 
+        function setMode(mode) {
+            activeMode = mode === 'solo' ? 'solo' : 'multiplayer';
+            const multiplayerActive = activeMode === 'multiplayer';
+            modeMultiplayerBtn.classList.toggle('active', multiplayerActive);
+            modeSoloBtn.classList.toggle('active', !multiplayerActive);
+            multiplayerPanel.classList.toggle('hidden', !multiplayerActive);
+            soloPanel.classList.toggle('hidden', multiplayerActive);
+            modeSubtitle.textContent = multiplayerActive
+                ? 'Join friends in a shared room or host your own lobby.'
+                : 'Instant AI run with objectives, mutators, and end-of-run grade.';
+            setStored(STORAGE.lastMode, activeMode);
+        }
+
+        function requirePlayerName() {
+            const playerName = nameInput.value.trim();
+            if (!playerName) {
+                alert('Enter your player name first.');
+                nameInput.focus();
+                return null;
+            }
+            setStored(STORAGE.playerName, playerName);
+            return playerName;
+        }
+
+        function getDefaultSoloTeamName(playerName) {
+            return `${playerName} Solo`.trim().slice(0, 20);
+        }
+
+        function refreshSoloTeamPlaceholder() {
+            const playerName = nameInput.value.trim();
+            if (!soloTeamInput) return;
+            soloTeamInput.placeholder = playerName
+                ? `Auto: ${getDefaultSoloTeamName(playerName)}`
+                : 'Auto: your name + Solo';
+        }
+
         function updateTeamStatus() {
+            const roomId = roomInput.value.trim();
             const input = teamInput.value.trim();
             const match = findExactTeamMatch(input);
-            if (!input) {
+            if (!roomId) {
+                teamStatus.textContent = 'Enter a room code, then pick or create a team.';
+                joinBtn.textContent = 'Join Game';
+            } else if (!input) {
                 teamStatus.textContent = 'Select a team below or type a new name.';
                 joinBtn.textContent = 'Join Game';
             } else if (match) {
@@ -221,9 +305,10 @@
                 roomCreated.classList.remove('hidden');
                 hostLink.href = `/host.html?room=${data.roomId}&hostKey=${data.hostKey}`;
 
-                setStored('chili_roomId', data.roomId);
-                setStored('chili_hostKey', data.hostKey);
+                setStored(STORAGE.roomId, data.roomId);
+                setStored(STORAGE.hostKey, data.hostKey);
                 roomInput.value = data.roomId;
+                setMode('multiplayer');
                 loadTeams(data.roomId);
             } catch (err) {
                 alert('Failed to create room.');
@@ -244,11 +329,12 @@
         });
 
         joinBtn.addEventListener('click', () => {
+            const playerName = requirePlayerName();
+            if (!playerName) return;
             const roomId = roomInput.value.trim();
             const teamNameInput = teamInput.value.trim();
-            const playerName = nameInput.value.trim();
-            if (!roomId || !teamNameInput || !playerName) {
-                alert('Please enter room code, team name, and your name.');
+            if (!roomId || !teamNameInput) {
+                alert('Please enter room code and team name.');
                 return;
             }
             const matchedTeam = findExactTeamMatch(teamNameInput);
@@ -257,11 +343,13 @@
                 if (!ok) return;
             }
             const teamName = matchedTeam || teamNameInput;
-            const playerId = getOrCreatePlayerId(roomId, teamName, playerName);
-            setStored('chili_roomId', roomId);
-            setStored('chili_teamName', teamName);
-            setStored('chili_playerName', playerName);
-            setStored('chili_playerId', playerId);
+            const playerId = getOrCreatePlayerId(roomId);
+            setStored(STORAGE.roomId, roomId);
+            setStored(STORAGE.activeTeam, teamName);
+            setStored(STORAGE.multiplayerTeam, teamName);
+            setStored(STORAGE.playerName, playerName);
+            setStored(STORAGE.playerId, playerId);
+            setStored(STORAGE.lastMode, 'multiplayer');
             window.location.href = `/game.html?room=${encodeURIComponent(roomId)}`;
         });
 
@@ -276,12 +364,11 @@
 
         if (soloStartBtn) {
             soloStartBtn.addEventListener('click', async () => {
-                const playerName = nameInput.value.trim();
-                if (!playerName) {
-                    alert('Enter your name before starting a solo run.');
-                    return;
-                }
-                const desiredTeamName = (teamInput.value.trim() || `${playerName} Solo`).slice(0, 20);
+                const playerName = requirePlayerName();
+                if (!playerName) return;
+
+                const rawTeamName = soloTeamInput?.value.trim();
+                const desiredTeamName = (rawTeamName || getDefaultSoloTeamName(playerName)).slice(0, 20);
                 const payload = {
                     difficulty: soloDifficultyInput?.value || 'standard',
                     daily: Boolean(soloDailyInput?.checked),
@@ -299,13 +386,15 @@
                     if (!response.ok) throw new Error('Failed solo setup');
                     const data = await response.json();
                     const teamName = data.playerTeam || desiredTeamName;
-                    const playerId = getOrCreatePlayerId(data.roomId, teamName, playerName);
+                    const playerId = getOrCreatePlayerId(data.roomId);
 
-                    setStored('chili_roomId', data.roomId);
-                    setStored('chili_hostKey', data.hostKey);
-                    setStored('chili_teamName', teamName);
-                    setStored('chili_playerName', playerName);
-                    setStored('chili_playerId', playerId);
+                    setStored(STORAGE.roomId, data.roomId);
+                    setStored(STORAGE.hostKey, data.hostKey);
+                    setStored(STORAGE.activeTeam, teamName);
+                    setStored(STORAGE.soloTeam, teamName);
+                    setStored(STORAGE.playerName, playerName);
+                    setStored(STORAGE.playerId, playerId);
+                    setStored(STORAGE.lastMode, 'solo');
 
                     window.location.href = `/game.html?room=${encodeURIComponent(data.roomId)}`;
                 } catch (err) {
@@ -317,10 +406,21 @@
             });
         }
 
+        modeMultiplayerBtn.addEventListener('click', () => setMode('multiplayer'));
+        modeSoloBtn.addEventListener('click', () => setMode('solo'));
         roomInput.addEventListener('input', () => {
             loadTeams(roomInput.value.trim());
         });
         teamInput.addEventListener('input', updateTeamStatus);
+        nameInput.addEventListener('input', () => {
+            refreshSoloTeamPlaceholder();
+            setStored(STORAGE.playerName, nameInput.value.trim());
+        });
+        if (soloTeamInput) {
+            soloTeamInput.addEventListener('input', () => {
+                setStored(STORAGE.soloTeam, soloTeamInput.value.trim());
+            });
+        }
 
         const params = new URLSearchParams(window.location.search);
         const presetRoom = params.get('room');
@@ -329,20 +429,26 @@
             loadTeams(roomInput.value.trim());
         }
 
-        const storedRoom = getStored('chili_roomId');
+        const storedRoom = getStored(STORAGE.roomId);
         if (storedRoom && !roomInput.value) {
             roomInput.value = storedRoom;
             loadTeams(storedRoom);
         }
-        const storedTeam = getStored('chili_teamName');
+        const storedTeam = getStored(STORAGE.multiplayerTeam) || getStored(STORAGE.activeTeam);
         if (storedTeam) teamInput.value = storedTeam;
-        const storedName = getStored('chili_playerName');
+        const storedSoloTeam = getStored(STORAGE.soloTeam);
+        if (storedSoloTeam && soloTeamInput) soloTeamInput.value = storedSoloTeam;
+        const storedName = getStored(STORAGE.playerName);
         if (storedName) nameInput.value = storedName;
+        const lastMode = getStored(STORAGE.lastMode);
+        const initialMode = presetRoom ? 'multiplayer' : (lastMode === 'solo' ? 'solo' : 'multiplayer');
+        setMode(initialMode);
+        refreshSoloTeamPlaceholder();
         updateTeamStatus();
 
         setInterval(() => {
             const roomId = roomInput.value.trim();
-            if (roomId) loadTeams(roomId);
+            if (activeMode === 'multiplayer' && roomId) loadTeams(roomId);
         }, 4000);
 
         document.getElementById('start-intro-btn').addEventListener('click', () => {

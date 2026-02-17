@@ -15,6 +15,8 @@ const elements = {
     cashDisplay: document.getElementById('cash-display'),
     leaderboardList: document.getElementById('leaderboard-list'),
     waitingScreen: document.getElementById('waiting-screen'),
+    waitingTitle: document.getElementById('waiting-title'),
+    waitingNote: document.getElementById('waiting-note'),
     roundScreen: document.getElementById('round-screen'),
     resultsScreen: document.getElementById('results-screen'),
     gameoverScreen: document.getElementById('gameover-screen'),
@@ -63,6 +65,7 @@ let ws = null;
 let gameState = {
     phase: 'waiting',
     round: 0,
+    mode: 'standard',
     cash: 0,
     bars: {},
     attributes: [],
@@ -71,6 +74,7 @@ let gameState = {
     resultsTimerInterval: null,
     lastBeepSecond: null,
     lastResultsBeepSecond: null,
+    soloStartRequested: false,
 };
 
 function connect() {
@@ -131,6 +135,9 @@ function handleMessage(data) {
 }
 
 function handleConnected(data) {
+    const serverState = data.gameState || {};
+    gameState.mode = serverState.mode || gameState.mode;
+
     elements.teamBadge.textContent = teamName;
     elements.roomBadge.textContent = `ROOM ${roomId}`;
     elements.waitingTeam.textContent = teamName;
@@ -140,9 +147,48 @@ function handleConnected(data) {
         gameState.cash = data.cash;
         elements.cashDisplay.textContent = `$${gameState.cash}`;
     }
-    if (data.gameState?.leaderboard) {
-        updateLeaderboard(data.gameState.leaderboard);
+    if (serverState.leaderboard) {
+        updateLeaderboard(serverState.leaderboard);
     }
+    updateWaitingCopy(serverState);
+    maybeRequestSoloStart(serverState);
+}
+
+function updateWaitingCopy(serverState) {
+    if (serverState?.mode === 'solo') {
+        if (elements.waitingTitle) {
+            elements.waitingTitle.textContent = 'Preparing Solo Run';
+        }
+        if (elements.waitingNote) {
+            elements.waitingNote.textContent = 'Solo runs auto-start as soon as you connect.';
+        }
+        if (elements.roundDisplay && gameState.phase === 'waiting') {
+            elements.roundDisplay.textContent = 'Solo run loading...';
+        }
+        return;
+    }
+    if (elements.waitingTitle) {
+        elements.waitingTitle.textContent = 'Waiting for Game to Start';
+    }
+    if (elements.waitingNote) {
+        elements.waitingNote.textContent = 'The host will start the game.';
+    }
+}
+
+function maybeRequestSoloStart(serverState) {
+    if (serverState?.mode !== 'solo') return;
+    if (serverState?.phase !== 'waiting') return;
+    if (gameState.soloStartRequested) return;
+    const hostKey = localStorage.getItem('chili_hostKey');
+    if (!hostKey) return;
+    gameState.soloStartRequested = true;
+    fetch(`/api/room/${encodeURIComponent(roomId)}/host`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'start', hostKey }),
+    }).catch(() => {
+        gameState.soloStartRequested = false;
+    });
 }
 
 function updateLeaderboard(leaderboard) {

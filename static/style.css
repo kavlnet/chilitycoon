@@ -164,6 +164,12 @@ body::before {
     max-width: 1200px;
 }
 
+.start-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 header {
     text-align: center;
     padding: 48px 0;
@@ -195,6 +201,10 @@ header h1 {
     box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
 }
 
+.identity-form {
+    border-color: rgba(67, 201, 216, 0.75);
+}
+
 .join-form .hint {
     margin-bottom: 20px;
 }
@@ -202,6 +212,64 @@ header h1 {
 .join-form h2 {
     font-size: 24px;
     color: var(--accent-yellow);
+}
+
+.mode-picker {
+    border-color: rgba(245, 161, 59, 0.75);
+}
+
+.mode-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.mode-tab {
+    width: 100%;
+    font-size: 18px;
+    padding: 12px 14px;
+}
+
+.mode-tab.active {
+    background: var(--accent-teal);
+    border-color: #3ab8b8;
+    color: var(--text-dark);
+}
+
+.mode-subtitle {
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+.mode-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.mode-subcard {
+    background: var(--bg-dark);
+    border: 3px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.mode-subcard h3 {
+    font-size: 22px;
+    color: var(--accent-yellow);
+    margin-bottom: 12px;
+}
+
+.mode-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mode-actions .btn {
+    flex: 1;
+    min-width: 140px;
 }
 
 .form-group {
@@ -1665,6 +1733,10 @@ body.shake {
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 900px) {
+    .mode-columns {
+        grid-template-columns: 1fr;
+    }
+
     .game-container {
         grid-template-columns: 1fr;
     }
@@ -1694,6 +1766,18 @@ body.shake {
 
     .countdown-number {
         font-size: 80px;
+    }
+
+    .mode-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .mode-actions {
+        flex-direction: column;
+    }
+
+    .mode-actions .btn {
+        width: 100%;
     }
 }
 

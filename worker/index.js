@@ -694,7 +694,11 @@ export class GameRoomV2 {
     const name = url.searchParams.get("name") || "Player";
     const requestedTeamName = decodeURIComponent(teamNameRaw);
     const isSpectator = requestedTeamName.toLowerCase() === "spectator";
-    const teamName = isSpectator ? requestedTeamName : resolveTeamName(requestedTeamName, this.game.teams);
+    let teamName = isSpectator ? requestedTeamName : resolveTeamName(requestedTeamName, this.game.teams);
+    if (!isSpectator && this.game.mode === "solo" && this.game.soloRun) {
+      // Solo rooms always map players to the configured solo team.
+      teamName = resolveTeamName(this.game.soloRun.playerTeam, this.game.teams);
+    }
 
     const pair = new WebSocketPair();
     const client = pair[0];
@@ -725,13 +729,7 @@ export class GameRoomV2 {
       leaderboard: this.getLeaderboard(),
     });
 
-    if (
-      !isSpectator
-      && this.game.mode === "solo"
-      && this.game.phase === "waiting"
-      && this.game.soloRun
-      && normalizeTeamKey(teamName) === normalizeTeamKey(this.game.soloRun.playerTeam)
-    ) {
+    if (!isSpectator && this.game.mode === "solo" && this.game.phase === "waiting" && this.game.soloRun) {
       this.startGame().catch(() => {});
     }
 
@@ -1260,9 +1258,8 @@ export class GameRoomV2 {
     this.game.paradigmAttribute = null;
     this.game.paradigmWarningSent = false;
     this.game.feedbackBiasRounds = 0;
-    this.game.mode = "standard";
+    this.game.mode = "solo";
     this.game.soloRun = null;
-    this.game.rngState = null;
 
     this.game.market.attributes = [...BASE_ATTRIBUTES];
     this.game.market.weights = normalizeWeights(
